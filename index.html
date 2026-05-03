@@ -1829,6 +1829,10 @@
             display: none;
         }
 
+        .mobile-sidebar-fixed-actions {
+            display: block;
+        }
+
         .empty-state {
             padding: 28px;
             border-radius: 24px;
@@ -1961,6 +1965,27 @@
                 background: #000;
             }
 
+            button,
+            a,
+            [role='button'],
+            .combo-trigger,
+            .combo-option,
+            .docs-endpoint-btn,
+            .session-btn {
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            button:focus,
+            a:focus,
+            [role='button']:focus,
+            .combo-trigger:focus,
+            .combo-option:focus,
+            .docs-endpoint-btn:focus,
+            .session-btn:focus {
+                outline: none;
+                box-shadow: none;
+            }
+
             body {
                 overflow: hidden;
             }
@@ -2004,10 +2029,7 @@
                 background: #08080a;
                 padding: 0 16px 16px;
                 gap: 12px;
-                overflow-y: auto;
-                overflow-x: hidden;
-                -webkit-overflow-scrolling: touch;
-                overscroll-behavior: contain;
+                overflow: hidden;
                 transform: translateX(-108%);
                 transition: transform 220ms ease;
                 backdrop-filter: none;
@@ -2030,7 +2052,7 @@
                 z-index: 3;
                 background: #08080a;
                 margin: 0 -16px 6px;
-                padding: 14px 16px 6px;
+                padding: calc(20px + env(safe-area-inset-top)) 16px 6px;
                 border-bottom: 1px solid var(--line);
             }
 
@@ -2087,13 +2109,75 @@
             }
 
             .status-card {
-                padding: 14px;
-                gap: 12px;
+                order: 40;
+                padding: 10px;
+                gap: 8px;
+                border-radius: 14px;
+            }
+
+            .status-top {
+                gap: 8px;
+            }
+
+            .status-top strong {
+                font-size: 0.82rem;
+                line-height: 1.35;
+            }
+
+            .status-top .eyebrow {
+                font-size: 0.58rem;
+                letter-spacing: 0.1em;
+            }
+
+            .status-pulse {
+                min-width: 9px;
+                min-height: 9px;
+            }
+
+            .metric {
+                padding: 8px;
+                border-radius: 12px;
+            }
+
+            .metric span {
+                font-size: 0.7rem;
+            }
+
+            .metric strong {
+                font-size: 0.95rem;
+            }
+
+            .status-card .primary-btn {
+                min-height: 38px;
+                padding: 10px 12px;
+                font-size: 0.86rem;
+            }
+
+            .section-title {
+                order: 20;
             }
 
             .session-list {
-                min-height: 220px;
-                max-height: 56vh;
+                order: 30;
+                min-height: 0;
+                max-height: none;
+                flex: 1;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+            }
+
+            .mobile-sidebar-fixed-actions {
+                order: 100;
+                position: sticky;
+                bottom: 0;
+                z-index: 4;
+                margin: 8px -16px 0;
+                padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+                background: #08080a;
+                border-top: 1px solid var(--line);
+                display: grid;
+                gap: 8px;
             }
 
             .topbar,
@@ -2480,22 +2564,24 @@
                 </button>
             </div>
 
-            <div class="mobile-sidebar-actions">
-                <button class="topbar-action-btn" id="mobile-open-docs-btn" type="button">
-                    <i class="fas fa-book-open"></i>
-                    Ver docs API
-                </button>
-                <button class="topbar-action-btn" id="mobile-open-diagram-btn" type="button">
-                    <i class="fas fa-diagram-project"></i>
-                    Ver diagrama do banco
-                </button>
-            </div>
+            <div class="mobile-sidebar-fixed-actions">
+                <div class="mobile-sidebar-actions">
+                    <button class="topbar-action-btn" id="mobile-open-docs-btn" type="button">
+                        <i class="fas fa-book-open"></i>
+                        Ver docs API
+                    </button>
+                    <button class="topbar-action-btn" id="mobile-open-diagram-btn" type="button">
+                        <i class="fas fa-diagram-project"></i>
+                        Ver diagrama do banco
+                    </button>
+                </div>
 
-            <div class="sidebar-config-row">
-                <button class="ghost-btn" id="toggle-sidebar" title="Configuracoes" type="button">
-                    <i class="fas fa-sliders"></i>
-                    <span class="config-btn-label">Configuracoes</span>
-                </button>
+                <div class="sidebar-config-row">
+                    <button class="ghost-btn" id="toggle-sidebar" title="Configuracoes" type="button">
+                        <i class="fas fa-sliders"></i>
+                        <span class="config-btn-label">Configuracoes</span>
+                    </button>
+                </div>
             </div>
 
             <section class="status-card">
