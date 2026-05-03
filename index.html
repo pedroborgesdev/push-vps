@@ -32,7 +32,7 @@
             --radius-xl: 28px;
             --radius-lg: 22px;
             --radius-md: 16px;
-            --content-width: 1500px;
+            --content-width: 1920px;
         }
 
         * {
@@ -178,6 +178,28 @@
         .ghost-btn:hover {
             transform: translateY(-1px);
             background: rgba(255, 255, 255, 0.08);
+        }
+
+        .config-btn-label {
+            display: inline;
+        }
+
+        .sidebar-config-row {
+            display: flex;
+            justify-content: center;
+        }
+
+        .sidebar-config-row .ghost-btn {
+            width: 100%;
+            min-height: 38px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
         }
 
         .status-card,
@@ -359,6 +381,24 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        .sidebar-close-btn {
+            display: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+        }
+
+        .sidebar-close-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
         .topbar-copy h2 {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.35rem;
@@ -374,7 +414,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
 
         .topbar-action-btn {
@@ -1253,7 +1293,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-width: min(860px, 88%);
+            max-width: min(1120px, 92%);
             opacity: 1;
             transform: none;
         }
@@ -1799,7 +1839,11 @@
         }
 
         #chat-box,
+        .sidebar,
         .session-list,
+        .api-workbench,
+        .diagram-workbench,
+        .docs-workbench,
         .api-output-shell,
         .sql-modal-body,
         .combo-menu,
@@ -1809,7 +1853,11 @@
         }
 
         #chat-box::-webkit-scrollbar,
+        .sidebar::-webkit-scrollbar,
         .session-list::-webkit-scrollbar,
+        .api-workbench::-webkit-scrollbar,
+        .diagram-workbench::-webkit-scrollbar,
+        .docs-workbench::-webkit-scrollbar,
         .api-output-shell::-webkit-scrollbar,
         .sql-modal-body::-webkit-scrollbar,
         .combo-menu::-webkit-scrollbar,
@@ -1819,7 +1867,11 @@
         }
 
         #chat-box::-webkit-scrollbar-thumb,
+        .sidebar::-webkit-scrollbar-thumb,
         .session-list::-webkit-scrollbar-thumb,
+        .api-workbench::-webkit-scrollbar-thumb,
+        .diagram-workbench::-webkit-scrollbar-thumb,
+        .docs-workbench::-webkit-scrollbar-thumb,
         .api-output-shell::-webkit-scrollbar-thumb,
         .sql-modal-body::-webkit-scrollbar-thumb,
         .combo-menu::-webkit-scrollbar-thumb,
@@ -1829,7 +1881,11 @@
         }
 
         #chat-box::-webkit-scrollbar-thumb:hover,
+        .sidebar::-webkit-scrollbar-thumb:hover,
         .session-list::-webkit-scrollbar-thumb:hover,
+        .api-workbench::-webkit-scrollbar-thumb:hover,
+        .diagram-workbench::-webkit-scrollbar-thumb:hover,
+        .docs-workbench::-webkit-scrollbar-thumb:hover,
         .api-output-shell::-webkit-scrollbar-thumb:hover,
         .sql-modal-body::-webkit-scrollbar-thumb:hover,
         .combo-menu::-webkit-scrollbar-thumb:hover,
@@ -1838,7 +1894,11 @@
         }
 
         #chat-box::-webkit-scrollbar-track,
+        .sidebar::-webkit-scrollbar-track,
         .session-list::-webkit-scrollbar-track,
+        .api-workbench::-webkit-scrollbar-track,
+        .diagram-workbench::-webkit-scrollbar-track,
+        .docs-workbench::-webkit-scrollbar-track,
         .api-output-shell::-webkit-scrollbar-track,
         .sql-modal-body::-webkit-scrollbar-track,
         .combo-menu::-webkit-scrollbar-track,
@@ -1858,20 +1918,6 @@
 
             .session-list {
                 max-height: 30vh;
-            }
-
-            .topbar {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .topbar-actions {
-                width: 100%;
-            }
-
-            .topbar-action-btn {
-                flex: 1 1 calc(50% - 5px);
-                min-width: 0;
             }
 
             .api-grid {
@@ -1928,9 +1974,11 @@
                 width: min(88vw, 340px);
                 max-width: 340px;
                 z-index: 99;
-                border-radius: 0 22px 0 0;
+                border-radius: 0;
+                border-top: 0;
                 border-left: 0;
-                padding: 16px;
+                background: #08080a;
+                padding: 0 16px 16px;
                 gap: 12px;
                 overflow-y: auto;
                 overflow-x: hidden;
@@ -1951,21 +1999,65 @@
             }
 
             .brand {
-                align-items: center;
+                position: sticky;
+                top: 0;
+                z-index: 3;
+                background: #08080a;
+                margin: 0 -16px 6px;
+                padding: 14px 16px 6px;
+                border-bottom: 1px solid var(--line);
             }
 
             .brand-mark {
                 gap: 10px;
+                align-items: flex-start;
+                text-align: left;
+                margin: 0;
+            }
+
+            .sidebar-close-btn {
+                display: inline-flex;
             }
 
             .brand-icon {
-                width: 88px;
-                height: 88px;
+                width: min(52vw, 168px);
+                height: auto;
             }
 
             .brand-icon img {
-                width: 84px;
-                height: 84px;
+                width: 100%;
+                height: auto;
+                content: url('./icon-mobile.png');
+            }
+
+            .brand-copy h1 {
+                display: none;
+            }
+
+            .brand-copy p {
+                display: none;
+            }
+
+            .sidebar-config-row {
+                display: flex;
+                justify-content: center;
+            }
+
+            .sidebar-config-row .ghost-btn {
+                width: 100%;
+                min-height: 38px;
+                padding: 8px 12px;
+                border-radius: 12px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 0.82rem;
+                font-weight: 600;
+            }
+
+            .config-btn-label {
+                display: inline;
             }
 
             .status-card {
@@ -1974,8 +2066,8 @@
             }
 
             .session-list {
-                min-height: 130px;
-                max-height: 26vh;
+                min-height: 220px;
+                max-height: 56vh;
             }
 
             .topbar,
@@ -2014,9 +2106,7 @@
                 gap: 8px;
             }
 
-            .mobile-sidebar-actions .topbar-action-btn,
-            .mobile-sidebar-actions .status-chip,
-            .mobile-sidebar-actions .meta-chip {
+            .mobile-sidebar-actions .topbar-action-btn {
                 width: 100%;
                 justify-content: flex-start;
             }
@@ -2037,6 +2127,14 @@
                 inset: 10px;
                 padding: 12px;
                 border-radius: 16px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .api-workbench-inner {
+                height: auto;
+                min-height: 100%;
             }
 
             .diagram-workbench {
@@ -2052,15 +2150,52 @@
             }
 
             .api-workbench-header {
-                flex-direction: column;
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: space-between;
+            }
+
+            .api-workbench-header > div {
+                min-width: 0;
+                flex: 1;
+            }
+
+            .api-inline.tight {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .api-inline.tight .outline-btn,
+            .api-inline.tight .secondary-btn {
+                width: 100%;
+            }
+
+            .api-inline.input-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
             }
 
             .diagram-workbench-header {
-                flex-direction: column;
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: space-between;
+            }
+
+            .diagram-workbench-header > div {
+                min-width: 0;
+                flex: 1;
             }
 
             .docs-workbench-header {
-                flex-direction: column;
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: space-between;
+            }
+
+            .docs-workbench-header > div {
+                min-width: 0;
+                flex: 1;
             }
 
             .docs-layout {
@@ -2119,6 +2254,10 @@
 
             .composer-hint {
                 font-size: 0.78rem;
+            }
+
+            .shift-enter-hint {
+                display: none;
             }
 
             .context-bar-wrap {
@@ -2257,7 +2396,7 @@
             }
 
             .session-list {
-                max-height: 24vh;
+                max-height: 44vh;
             }
 
             .api-workbench,
@@ -2268,6 +2407,22 @@
 
             .docs-sidebar {
                 max-height: 30vh;
+            }
+        }
+
+        @media (min-width: 1121px) {
+            .api-workbench,
+            .diagram-workbench,
+            .docs-workbench {
+                inset: 20px auto 20px 50%;
+                width: min(calc(100vw - 40px), var(--content-width));
+                transform: translateX(-50%) scale(0.985);
+            }
+
+            .api-workbench.is-open,
+            .diagram-workbench.is-open,
+            .docs-workbench.is-open {
+                transform: translateX(-50%) scale(1);
             }
         }
     </style>
@@ -2284,8 +2439,26 @@
                         <p>SQLite workspace para conversa e execucao guiada</p>
                     </div>
                 </div>
-                <button class="ghost-btn" id="toggle-sidebar" title="Atualizar painel">
+                <button class="sidebar-close-btn" id="mobile-close-sidebar-btn" title="Fechar menu" aria-label="Fechar menu lateral" type="button">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="mobile-sidebar-actions">
+                <button class="topbar-action-btn" id="mobile-open-docs-btn" type="button">
+                    <i class="fas fa-book-open"></i>
+                    Ver docs API
+                </button>
+                <button class="topbar-action-btn" id="mobile-open-diagram-btn" type="button">
+                    <i class="fas fa-diagram-project"></i>
+                    Ver diagrama do banco
+                </button>
+            </div>
+
+            <div class="sidebar-config-row">
+                <button class="ghost-btn" id="toggle-sidebar" title="Configuracoes" type="button">
                     <i class="fas fa-sliders"></i>
+                    <span class="config-btn-label">Configuracoes</span>
                 </button>
             </div>
 
@@ -2318,19 +2491,6 @@
                 <span id="session-subtitle">memoria local</span>
             </div>
 
-            <div class="mobile-sidebar-actions">
-                <button class="topbar-action-btn" id="mobile-open-docs-btn" type="button">
-                    <i class="fas fa-book-open"></i>
-                    Ver docs API
-                </button>
-                <button class="topbar-action-btn" id="mobile-open-diagram-btn" type="button">
-                    <i class="fas fa-diagram-project"></i>
-                    Ver diagrama do banco
-                </button>
-                <div class="status-chip"><i class="fas fa-bolt"></i><span>API local</span></div>
-                <div class="meta-chip"><i class="fas fa-clock"></i><span id="mobile-session-timestamp">agora</span></div>
-            </div>
-
             <div class="session-list" id="session-list"></div>
         </aside>
 
@@ -2352,8 +2512,6 @@
                         <i class="fas fa-diagram-project"></i>
                         Ver diagrama do banco
                     </button>
-                    <div class="status-chip"><i class="fas fa-bolt"></i><span>API local</span></div>
-                    <div class="meta-chip"><i class="fas fa-clock"></i><span id="session-timestamp">agora</span></div>
                 </div>
             </header>
 
@@ -2568,7 +2726,7 @@
                         </button>
                     </div>
                     <div class="composer-meta">
-                        <div class="composer-hint">Enter envia. Shift + Enter quebra linha. As sessoes ficam salvas localmente no navegador.</div>
+                        <div class="composer-hint">Enter envia.<span class="shift-enter-hint"> Shift + Enter quebra linha.</span> As sessoes ficam salvas localmente no navegador.</div>
                         <div class="context-bar-wrap" id="context-bar-wrap">
                             <button id="clear-context-btn" title="Limpar contexto da conversa" style="background:none;border:none;cursor:pointer;color:#c3a9d6;font-size:0.78rem;padding:0;display:flex;align-items:center;gap:5px;opacity:0.7;transition:opacity 0.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7"><i class="fas fa-rotate-left"></i> Limpar contexto</button>
                             <span class="context-bar-label" id="context-bar-label">? / ?</span>
@@ -2598,8 +2756,6 @@
     const sessionList = document.getElementById('session-list');
     const chatTitle = document.getElementById('chat-title');
     const chatSubtitle = document.getElementById('chat-subtitle');
-    const sessionTimestamp = document.getElementById('session-timestamp');
-    const mobileSessionTimestamp = document.getElementById('mobile-session-timestamp');
     const sessionCount = document.getElementById('session-count');
     const messageCount = document.getElementById('message-count');
     const openDiagramTopbarBtn = document.getElementById('open-diagram-topbar-btn');
@@ -2607,6 +2763,7 @@
     const mobileOpenDiagramBtn = document.getElementById('mobile-open-diagram-btn');
     const mobileOpenDocsBtn = document.getElementById('mobile-open-docs-btn');
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileCloseSidebarBtn = document.getElementById('mobile-close-sidebar-btn');
     const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
     const toggleSidebarBtn = document.getElementById('toggle-sidebar');
     const apiWorkbench = document.getElementById('api-workbench');
@@ -3769,10 +3926,6 @@
 
         chatTitle.textContent = getSessionPreview(session);
         chatSubtitle.textContent = 'Sessao ativa pronta para novas perguntas.';
-        sessionTimestamp.textContent = formatDate(session.updatedAt || session.createdAt);
-        if (mobileSessionTimestamp) {
-            mobileSessionTimestamp.textContent = sessionTimestamp.textContent;
-        }
 
         sessionCount.textContent = sessions.length;
         messageCount.textContent = sessions.reduce((total, current) => total + current.messages.length, 0);
@@ -4493,6 +4646,9 @@
             setMobileSidebarOpen(!document.body.classList.contains('mobile-sidebar-open'));
         });
     }
+    if (mobileCloseSidebarBtn) {
+        mobileCloseSidebarBtn.addEventListener('click', () => setMobileSidebarOpen(false));
+    }
     if (mobileSidebarBackdrop) {
         mobileSidebarBackdrop.addEventListener('click', () => setMobileSidebarOpen(false));
     }
@@ -4524,7 +4680,12 @@
             handleSend();
         }
     });
-    toggleSidebarBtn.addEventListener('click', () => setApiWorkbenchOpen(true));
+    toggleSidebarBtn.addEventListener('click', () => {
+        if (isMobileViewport()) {
+            setMobileSidebarOpen(false);
+        }
+        setApiWorkbenchOpen(true);
+    });
     closeApiWorkbenchBtn.addEventListener('click', () => setApiWorkbenchOpen(false));
     closeDiagramWorkbenchBtn.addEventListener('click', () => setDiagramWorkbenchOpen(false));
     closeDocsWorkbenchBtn.addEventListener('click', () => setDocsWorkbenchOpen(false));
