@@ -1833,6 +1833,10 @@
             display: block;
         }
 
+        .mobile-new-session-wrap {
+            display: none;
+        }
+
         .empty-state {
             padding: 28px;
             border-radius: 24px;
@@ -1965,6 +1969,10 @@
                 background: #000;
             }
 
+            html {
+                font-size: 14px;
+            }
+
             button,
             a,
             [role='button'],
@@ -2017,8 +2025,8 @@
 
             .sidebar {
                 position: fixed;
-                top: 0;
-                bottom: 0;
+                top: env(safe-area-inset-top);
+                bottom: env(safe-area-inset-bottom);
                 left: 0;
                 width: var(--mobile-sidebar-width);
                 max-width: 340px;
@@ -2027,7 +2035,7 @@
                 border-top: 0;
                 border-left: 0;
                 background: #08080a;
-                padding: 0 16px 16px;
+                padding: 0 16px 12px;
                 gap: 12px;
                 overflow: hidden;
                 transform: translateX(-108%);
@@ -2109,10 +2117,7 @@
             }
 
             .status-card {
-                order: 40;
-                padding: 10px;
-                gap: 8px;
-                border-radius: 14px;
+                display: none;
             }
 
             .status-top {
@@ -2165,6 +2170,15 @@
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
                 overscroll-behavior: contain;
+            }
+
+            .mobile-new-session-wrap {
+                display: block;
+                order: 40;
+            }
+
+            .mobile-new-session-wrap .primary-btn {
+                width: 100%;
             }
 
             .mobile-sidebar-fixed-actions {
@@ -2366,6 +2380,7 @@
 
             .composer-hint {
                 font-size: 0.78rem;
+                display: none;
             }
 
             .shift-enter-hint {
@@ -2426,6 +2441,10 @@
         @media (max-width: 560px) {
             :root {
                 --mobile-sidebar-width: min(92vw, 340px);
+            }
+
+            html {
+                font-size: 13px;
             }
 
             #app-shell {
@@ -2611,6 +2630,13 @@
             <div class="section-title">
                 <span>Chat Sessions</span>
                 <span id="session-subtitle">memoria local</span>
+            </div>
+
+            <div class="mobile-new-session-wrap">
+                <button class="primary-btn" id="mobile-new-chat-btn" type="button">
+                    <i class="fas fa-plus"></i>
+                    Nova sessao
+                </button>
             </div>
 
             <div class="session-list" id="session-list"></div>
@@ -2875,6 +2901,7 @@
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
     const newChatBtn = document.getElementById('new-chat-btn');
+    const mobileNewChatBtn = document.getElementById('mobile-new-chat-btn');
     const sessionList = document.getElementById('session-list');
     const chatTitle = document.getElementById('chat-title');
     const chatSubtitle = document.getElementById('chat-subtitle');
@@ -3137,7 +3164,7 @@
             ? '<i class="fas fa-stop"></i>'
             : '<i class="fas fa-paper-plane"></i>';
         userInput.disabled = isProcessingCurrentSession;
-        if (!isProcessingCurrentSession) {
+        if (!isProcessingCurrentSession && !isMobileViewport()) {
             userInput.focus();
         }
     }
@@ -4731,6 +4758,9 @@
     }
 
     newChatBtn.addEventListener('click', () => createSession());
+    if (mobileNewChatBtn) {
+        mobileNewChatBtn.addEventListener('click', () => createSession());
+    }
     document.getElementById('clear-context-btn').addEventListener('click', clearContext);
     sendBtn.addEventListener('click', () => {
         if (isSessionProcessing(currentSessionId)) {
@@ -4852,7 +4882,9 @@
     loadState();
     loadModelInfo(false);
     renderDocsEndpoint('prompt_sync');
-    userInput.focus();
+    if (!isMobileViewport()) {
+        userInput.focus();
+    }
 </script>
 </body>
 </html>
