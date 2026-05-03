@@ -75,9 +75,9 @@
 
         #app-shell {
             position: relative;
-            z-index: 1;
             width: 100%;
-            height: 100vh;
+            height: 100dvh;
+            min-height: 100vh;
             padding: 20px;
         }
 
@@ -88,6 +88,7 @@
             display: grid;
             grid-template-columns: 330px minmax(0, 1fr);
             gap: 18px;
+            min-height: 0;
         }
 
         .sidebar,
@@ -327,6 +328,7 @@
             overflow: hidden;
             display: grid;
             grid-template-rows: auto minmax(0, 1fr) auto;
+            min-height: 0;
         }
 
         .topbar {
@@ -337,6 +339,24 @@
             align-items: center;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+        }
+
+        .mobile-menu-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .topbar-copy h2 {
@@ -1754,6 +1774,21 @@
         .context-bar-fill.ctx-warn  { background: #ff8f4d; }
         .context-bar-fill.ctx-danger { background: #e84040; }
 
+        .mobile-sidebar-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 98;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 180ms ease, visibility 180ms ease;
+        }
+
+        .mobile-sidebar-actions {
+            display: none;
+        }
+
         .empty-state {
             padding: 28px;
             border-radius: 24px;
@@ -1814,10 +1849,29 @@
         @media (max-width: 1120px) {
             .workspace {
                 grid-template-columns: 1fr;
+                height: auto;
             }
 
             .sidebar {
-                max-height: 38vh;
+                max-height: none;
+            }
+
+            .session-list {
+                max-height: 30vh;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .topbar-actions {
+                width: 100%;
+            }
+
+            .topbar-action-btn {
+                flex: 1 1 calc(50% - 5px);
+                min-width: 0;
             }
 
             .api-grid {
@@ -1848,22 +1902,80 @@
 
         @media (max-width: 720px) {
             body {
-                overflow: auto;
+                overflow: hidden;
             }
 
             #app-shell {
-                height: auto;
-                min-height: 100vh;
-                padding: 12px;
+                height: 100dvh;
+                min-height: 100dvh;
+                padding: 8px;
             }
 
             .workspace {
-                height: auto;
+                height: 100%;
+                gap: 0;
             }
 
-            .sidebar,
             .main-panel {
-                border-radius: 24px;
+                border-radius: 16px;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: min(88vw, 340px);
+                max-width: 340px;
+                z-index: 99;
+                border-radius: 0 22px 0 0;
+                border-left: 0;
+                padding: 16px;
+                gap: 12px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+                transform: translateX(-108%);
+                transition: transform 220ms ease;
+                backdrop-filter: none;
+            }
+
+            body.mobile-sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            body.mobile-sidebar-open .mobile-sidebar-backdrop {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            .brand {
+                align-items: center;
+            }
+
+            .brand-mark {
+                gap: 10px;
+            }
+
+            .brand-icon {
+                width: 88px;
+                height: 88px;
+            }
+
+            .brand-icon img {
+                width: 84px;
+                height: 84px;
+            }
+
+            .status-card {
+                padding: 14px;
+                gap: 12px;
+            }
+
+            .session-list {
+                min-height: 130px;
+                max-height: 26vh;
             }
 
             .topbar,
@@ -1873,19 +1985,70 @@
                 padding-right: 16px;
             }
 
+            .topbar {
+                padding-top: 16px;
+                padding-bottom: 12px;
+                gap: 10px;
+            }
+
+            .mobile-menu-btn {
+                display: inline-flex;
+            }
+
+            .topbar-copy h2 {
+                font-size: 1.12rem;
+            }
+
+            .topbar-copy p {
+                font-size: 0.86rem;
+            }
+
+            .topbar-actions {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .mobile-sidebar-actions {
+                display: grid;
+                gap: 8px;
+            }
+
+            .mobile-sidebar-actions .topbar-action-btn,
+            .mobile-sidebar-actions .status-chip,
+            .mobile-sidebar-actions .meta-chip {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .topbar-action-btn {
+                width: 100%;
+                min-height: 38px;
+                padding: 8px 10px;
+                border-radius: 12px;
+                font-size: 0.76rem;
+            }
+
+            .topbar-actions {
+                display: none;
+            }
+
             .api-workbench {
                 inset: 10px;
-                padding: 16px;
+                padding: 12px;
+                border-radius: 16px;
             }
 
             .diagram-workbench {
                 inset: 10px;
-                padding: 16px;
+                padding: 12px;
+                border-radius: 16px;
             }
 
             .docs-workbench {
                 inset: 10px;
-                padding: 16px;
+                padding: 12px;
+                border-radius: 16px;
             }
 
             .api-workbench-header {
@@ -1905,20 +2068,35 @@
             }
 
             .docs-sidebar {
-                max-height: 38vh;
+                max-height: 32vh;
             }
 
             .docs-detail-grid {
                 grid-template-columns: 1fr;
             }
 
-            .topbar {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
             .composer-top {
                 align-items: stretch;
+                gap: 10px;
+            }
+
+            .main-panel {
+                height: 100%;
+            }
+
+            #chat-box {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 14px;
+            }
+
+            .composer {
+                position: sticky;
+                bottom: 0;
+                z-index: 12;
+                background:
+                    linear-gradient(180deg, rgba(4, 4, 6, 0.08), rgba(4, 4, 6, 0.96) 32%),
+                    rgba(4, 4, 6, 0.92);
             }
 
             #send-btn {
@@ -1926,8 +2104,170 @@
                 height: 50px;
             }
 
+            .composer-shell {
+                border-radius: 18px;
+                padding: 12px;
+                gap: 10px;
+            }
+
+            #user-input {
+                height: 52px;
+                min-height: 52px;
+                max-height: 52px;
+                font-size: 0.96rem;
+            }
+
+            .composer-hint {
+                font-size: 0.78rem;
+            }
+
+            .context-bar-wrap {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .context-bar-track {
+                flex: 1;
+                width: auto;
+                min-width: 70px;
+            }
+
             .message-wrapper {
                 max-width: 100%;
+            }
+
+            .message {
+                padding: 14px 14px;
+                border-radius: 16px;
+                line-height: 1.6;
+            }
+
+            .message-meta {
+                font-size: 0.72rem;
+                gap: 8px;
+            }
+
+            .message-avatar {
+                width: 30px;
+                height: 30px;
+            }
+
+            .message-avatar.bot-avatar {
+                width: 38px;
+                height: 38px;
+            }
+
+            .message-avatar.bot-avatar img {
+                width: 34px;
+                height: 34px;
+            }
+
+            .typing-thought {
+                max-width: 100%;
+                font-size: 0.92rem;
+            }
+        }
+
+        @media (max-width: 560px) {
+            #app-shell {
+                padding: 0;
+            }
+
+            .main-panel {
+                border-radius: 0;
+            }
+
+            .topbar,
+            #chat-box,
+            .composer {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .topbar-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .mobile-sidebar-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar-action-btn {
+                justify-content: flex-start;
+            }
+
+            .status-metrics,
+            .mini-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .session-btn {
+                padding: 11px;
+            }
+
+            .api-workbench,
+            .diagram-workbench,
+            .docs-workbench {
+                inset: 6px;
+                border-radius: 14px;
+                padding: 10px;
+            }
+
+            .sidebar {
+                width: min(92vw, 340px);
+            }
+
+            .api-workbench-header h3,
+            .diagram-workbench-header h3,
+            .docs-workbench-header h3 {
+                font-size: 1rem;
+            }
+
+            .api-workbench-header p,
+            .diagram-workbench-header p,
+            .docs-workbench-header p {
+                font-size: 0.76rem;
+            }
+
+            #chat-box {
+                gap: 14px;
+                padding-top: 14px;
+            }
+
+            .message pre {
+                padding: 10px;
+            }
+
+            .sql-modal {
+                width: min(96vw, 620px);
+                max-height: min(86dvh, 680px);
+                border-radius: 16px;
+                padding: 12px;
+            }
+        }
+
+        @media (max-height: 560px) and (orientation: landscape) {
+            #app-shell {
+                height: auto;
+                min-height: 100dvh;
+            }
+
+            .workspace {
+                height: auto;
+            }
+
+            .session-list {
+                max-height: 24vh;
+            }
+
+            .api-workbench,
+            .diagram-workbench,
+            .docs-workbench {
+                inset: 8px;
+            }
+
+            .docs-sidebar {
+                max-height: 30vh;
             }
         }
     </style>
@@ -1977,11 +2317,28 @@
                 <span>Chat Sessions</span>
                 <span id="session-subtitle">memoria local</span>
             </div>
+
+            <div class="mobile-sidebar-actions">
+                <button class="topbar-action-btn" id="mobile-open-docs-btn" type="button">
+                    <i class="fas fa-book-open"></i>
+                    Ver docs API
+                </button>
+                <button class="topbar-action-btn" id="mobile-open-diagram-btn" type="button">
+                    <i class="fas fa-diagram-project"></i>
+                    Ver diagrama do banco
+                </button>
+                <div class="status-chip"><i class="fas fa-bolt"></i><span>API local</span></div>
+                <div class="meta-chip"><i class="fas fa-clock"></i><span id="mobile-session-timestamp">agora</span></div>
+            </div>
+
             <div class="session-list" id="session-list"></div>
         </aside>
 
         <main class="main-panel">
             <header class="topbar">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" title="Abrir menu" aria-label="Abrir menu lateral">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="topbar-copy">
                     <h2 id="chat-title">Nova sessao</h2>
                     <p id="chat-subtitle">Converse com o motor local e mantenha cada assunto em uma sessao separada.</p>
@@ -2225,6 +2582,7 @@
         </main>
     </div>
 </div>
+<div class="mobile-sidebar-backdrop" id="mobile-sidebar-backdrop" aria-hidden="true"></div>
 
 <script>
     marked.setOptions({ breaks: true, gfm: true });
@@ -2241,10 +2599,15 @@
     const chatTitle = document.getElementById('chat-title');
     const chatSubtitle = document.getElementById('chat-subtitle');
     const sessionTimestamp = document.getElementById('session-timestamp');
+    const mobileSessionTimestamp = document.getElementById('mobile-session-timestamp');
     const sessionCount = document.getElementById('session-count');
     const messageCount = document.getElementById('message-count');
     const openDiagramTopbarBtn = document.getElementById('open-diagram-topbar-btn');
     const openDocsTopbarBtn = document.getElementById('open-docs-topbar-btn');
+    const mobileOpenDiagramBtn = document.getElementById('mobile-open-diagram-btn');
+    const mobileOpenDocsBtn = document.getElementById('mobile-open-docs-btn');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
     const toggleSidebarBtn = document.getElementById('toggle-sidebar');
     const apiWorkbench = document.getElementById('api-workbench');
     const closeApiWorkbenchBtn = document.getElementById('close-api-workbench-btn');
@@ -2517,6 +2880,18 @@
         }
 
         refreshPromptComposerState();
+    }
+
+    function isMobileViewport() {
+        return window.matchMedia('(max-width: 720px)').matches;
+    }
+
+    function setMobileSidebarOpen(open) {
+        const shouldOpen = Boolean(open) && isMobileViewport();
+        document.body.classList.toggle('mobile-sidebar-open', shouldOpen);
+        if (mobileSidebarBackdrop) {
+            mobileSidebarBackdrop.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+        }
     }
 
     async function cancelCurrentPrompt() {
@@ -3332,6 +3707,9 @@
         saveState();
         renderAll();
         refreshPromptComposerState();
+        if (isMobileViewport()) {
+            setMobileSidebarOpen(false);
+        }
     }
 
     function addMessage(sender, text, options = {}) {
@@ -3392,6 +3770,9 @@
         chatTitle.textContent = getSessionPreview(session);
         chatSubtitle.textContent = 'Sessao ativa pronta para novas perguntas.';
         sessionTimestamp.textContent = formatDate(session.updatedAt || session.createdAt);
+        if (mobileSessionTimestamp) {
+            mobileSessionTimestamp.textContent = sessionTimestamp.textContent;
+        }
 
         sessionCount.textContent = sessions.length;
         messageCount.textContent = sessions.reduce((total, current) => total + current.messages.length, 0);
@@ -4090,10 +4471,35 @@
     viewDiagramBtn.addEventListener('click', openSchemaDiagram);
     openDiagramTopbarBtn.addEventListener('click', openSchemaDiagram);
     openDocsTopbarBtn.addEventListener('click', () => setDocsWorkbenchOpen(true));
+    if (mobileOpenDiagramBtn) {
+        mobileOpenDiagramBtn.addEventListener('click', () => {
+            setMobileSidebarOpen(false);
+            openSchemaDiagram();
+        });
+    }
+    if (mobileOpenDocsBtn) {
+        mobileOpenDocsBtn.addEventListener('click', () => {
+            setMobileSidebarOpen(false);
+            setDocsWorkbenchOpen(true);
+        });
+    }
     docsEndpointButtons.forEach((button) => {
         button.addEventListener('click', () => {
             renderDocsEndpoint(button.dataset.endpointId);
         });
+    });
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            setMobileSidebarOpen(!document.body.classList.contains('mobile-sidebar-open'));
+        });
+    }
+    if (mobileSidebarBackdrop) {
+        mobileSidebarBackdrop.addEventListener('click', () => setMobileSidebarOpen(false));
+    }
+    window.addEventListener('resize', () => {
+        if (!isMobileViewport()) {
+            setMobileSidebarOpen(false);
+        }
     });
     modelComboboxTrigger.addEventListener('click', () => {
         setModelComboboxOpen(!modelCombobox.classList.contains('is-open'));
@@ -4138,6 +4544,10 @@
         }
     });
     document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && document.body.classList.contains('mobile-sidebar-open')) {
+            setMobileSidebarOpen(false);
+            return;
+        }
         if (event.key === 'Escape' && docsWorkbenchOpen) {
             setDocsWorkbenchOpen(false);
             return;
