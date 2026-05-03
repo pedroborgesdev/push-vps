@@ -1947,14 +1947,26 @@
         }
 
         @media (max-width: 720px) {
+            html,
+            body {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                overscroll-behavior: none;
+                background: #000;
+            }
+
             body {
                 overflow: hidden;
             }
 
             #app-shell {
+                position: fixed;
+                inset: 0;
                 height: 100dvh;
                 min-height: 100dvh;
                 padding: 8px;
+                overflow: hidden;
             }
 
             .workspace {
@@ -1983,6 +1995,7 @@
                 overflow-y: auto;
                 overflow-x: hidden;
                 -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
                 transform: translateX(-108%);
                 transition: transform 220ms ease;
                 backdrop-filter: none;
@@ -2130,6 +2143,7 @@
                 overflow-y: auto;
                 overflow-x: hidden;
                 -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
             }
 
             .api-workbench-inner {
@@ -2222,6 +2236,7 @@
             #chat-box {
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
                 padding-bottom: 14px;
             }
 
@@ -2284,6 +2299,10 @@
             .message-meta {
                 font-size: 0.72rem;
                 gap: 8px;
+            }
+
+            .message-wrapper.from-user .message-meta {
+                justify-content: flex-end;
             }
 
             .message-avatar {
@@ -4018,6 +4037,7 @@
     function populateMessageElement(wrapper, message, animatedMessageId = null, options = {}) {
         wrapper.className = 'message-wrapper';
         wrapper.style.alignSelf = message.sender === 'user' ? 'flex-end' : 'flex-start';
+        wrapper.classList.add(message.sender === 'user' ? 'from-user' : 'from-bot');
 
         if (animatedMessageId && message.id === animatedMessageId) {
             wrapper.classList.add(message.sender === 'user' ? 'message-enter-user' : 'message-enter-bot');
