@@ -38,7 +38,7 @@ func main() {
 			http.ServeFile(w, r, "icon.png")
 		})
 		mux.Handle("/", http.FileServer(http.Dir(".")))
-		logger.Infof("Frontend available", []logger.ParamPair{{Key: "url", Value: "http://localhost:8802"}})
+		logger.Infof("Frontend available", []logger.ParamPair{{Key: "url", Value: "http://195.35.43.220:8802"}})
 		if err := http.ListenAndServe(":8802", mux); err != nil {
 			logger.Errorf("Frontend server error", []logger.ParamPair{{Key: "error", Value: err.Error()}})
 		}
