@@ -36,6 +36,8 @@
             --mobile-keyboard-offset: 0px;
             --mobile-composer-height: 0px;
             --mobile-chat-lock-height: 0px;
+            --mobile-viewport-height: 100dvh;
+            --mobile-viewport-top: 0px;
         }
 
         * {
@@ -1965,8 +1967,8 @@
             html,
             body {
                 width: 100%;
-                height: 100svh;
-                min-height: 100svh;
+                height: var(--mobile-viewport-height);
+                min-height: var(--mobile-viewport-height);
                 overflow: hidden;
                 overscroll-behavior: none;
                 background: #000;
@@ -2003,12 +2005,11 @@
 
             #app-shell {
                 position: fixed;
-                top: 0;
+                top: var(--mobile-viewport-top);
                 right: 0;
-                bottom: 0;
                 left: 0;
-                height: 100svh;
-                min-height: 100svh;
+                height: var(--mobile-viewport-height);
+                min-height: var(--mobile-viewport-height);
                 padding:
                     calc(8px + env(safe-area-inset-top))
                     calc(8px + env(safe-area-inset-right))
@@ -2030,10 +2031,10 @@
 
             .sidebar {
                 position: fixed;
-                top: env(safe-area-inset-top);
-                bottom: env(safe-area-inset-bottom);
+                top: calc(var(--mobile-viewport-top) + env(safe-area-inset-top));
                 left: 0;
                 width: var(--mobile-sidebar-width);
+                height: calc(var(--mobile-viewport-height) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
                 max-width: 340px;
                 z-index: 99;
                 border-radius: 0;
@@ -3219,6 +3220,21 @@
         return window.matchMedia('(max-width: 720px)').matches;
     }
 
+    function syncMobileViewportLayout() {
+        if (!isMobileViewport()) {
+            document.documentElement.style.setProperty('--mobile-viewport-height', '100dvh');
+            document.documentElement.style.setProperty('--mobile-viewport-top', '0px');
+            return;
+        }
+
+        const visualViewport = window.visualViewport;
+        const viewportHeight = visualViewport ? visualViewport.height : window.innerHeight;
+        const viewportTop = visualViewport ? visualViewport.offsetTop : 0;
+
+        document.documentElement.style.setProperty('--mobile-viewport-height', `${Math.max(0, Math.round(viewportHeight))}px`);
+        document.documentElement.style.setProperty('--mobile-viewport-top', `${Math.max(0, Math.round(viewportTop))}px`);
+    }
+
     function setMobileSidebarOpen(open) {
         const shouldOpen = Boolean(open) && isMobileViewport();
         document.body.classList.toggle('mobile-sidebar-open', shouldOpen);
@@ -3235,6 +3251,8 @@
     }
 
     function syncMobileKeyboardLayout() {
+        syncMobileViewportLayout();
+
         if (!isMobileViewport() || !chatBox || !composer || !mainPanel) {
             clearMobileKeyboardLayout();
             return;
@@ -4870,6 +4888,8 @@
         if (!isMobileViewport()) {
             setMobileSidebarOpen(false);
         }
+        syncMobileViewportLayout();
+        syncMobileKeyboardLayout();
     });
     modelComboboxTrigger.addEventListener('click', () => {
         setModelComboboxOpen(!modelCombobox.classList.contains('is-open'));
@@ -4904,13 +4924,14 @@
         if (isMobileViewport()) {
             setMobileSidebarOpen(false);
         }
-        syncMobileKeyboardLayout();
         setApiWorkbenchOpen(true);
+    });
     if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncMobileViewportLayout);
+        window.visualViewport.addEventListener('scroll', syncMobileViewportLayout);
         window.visualViewport.addEventListener('resize', syncMobileKeyboardLayout);
         window.visualViewport.addEventListener('scroll', syncMobileKeyboardLayout);
     }
-    });
     closeApiWorkbenchBtn.addEventListener('click', () => setApiWorkbenchOpen(false));
     closeDiagramWorkbenchBtn.addEventListener('click', () => setDiagramWorkbenchOpen(false));
     closeDocsWorkbenchBtn.addEventListener('click', () => setDocsWorkbenchOpen(false));
@@ -4954,6 +4975,7 @@
     loadState();
     loadModelInfo(false);
     renderDocsEndpoint('prompt_sync');
+    syncMobileViewportLayout();
     syncMobileKeyboardLayout();
     if (!isMobileViewport()) {
         userInput.focus();
