@@ -33,6 +33,9 @@
             --radius-lg: 22px;
             --radius-md: 16px;
             --content-width: 1920px;
+            --mobile-keyboard-offset: 0px;
+            --mobile-composer-height: 0px;
+            --mobile-chat-lock-height: 0px;
         }
 
         * {
@@ -2020,7 +2023,9 @@
             }
 
             .main-panel {
-                border-radius: 16px;
+                border-radius: 0;
+                border-left: 0;
+                border-right: 0;
             }
 
             .sidebar {
@@ -2358,6 +2363,26 @@
                 background:
                     linear-gradient(180deg, rgba(4, 4, 6, 0.08), rgba(4, 4, 6, 0.96) 32%),
                     rgba(4, 4, 6, 0.92);
+            }
+            body.mobile-keyboard-open .main-panel {
+                grid-template-rows: auto minmax(0, 1fr);
+                padding-bottom: calc(var(--mobile-composer-height) + 8px + env(safe-area-inset-bottom));
+            }
+
+            body.mobile-keyboard-open #chat-box {
+                min-height: var(--mobile-chat-lock-height);
+                max-height: var(--mobile-chat-lock-height);
+            }
+
+            body.mobile-keyboard-open .composer {
+                position: fixed;
+                left: calc(16px + env(safe-area-inset-left));
+                right: calc(16px + env(safe-area-inset-right));
+                bottom: calc(var(--mobile-keyboard-offset) + env(safe-area-inset-bottom));
+                z-index: 30;
+                border-top: 0;
+                padding: 8px 0 0;
+                background: transparent;
             }
 
             #send-btn {
@@ -2898,6 +2923,8 @@
     const ACTIVE_SESSION_KEY = 'papoql.activeSession.v2';
     const META_KEY = 'papoql.meta.v1';
     const chatBox = document.getElementById('chat-box');
+    const mainPanel = document.querySelector('.main-panel');
+    const composer = document.querySelector('.composer');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
     const newChatBtn = document.getElementById('new-chat-btn');
@@ -3198,6 +3225,37 @@
         if (mobileSidebarBackdrop) {
             mobileSidebarBackdrop.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
         }
+    }
+
+    function clearMobileKeyboardLayout() {
+        document.body.classList.remove('mobile-keyboard-open');
+        document.documentElement.style.setProperty('--mobile-keyboard-offset', '0px');
+        document.documentElement.style.setProperty('--mobile-chat-lock-height', '0px');
+        document.documentElement.style.setProperty('--mobile-composer-height', '0px');
+    }
+
+    function syncMobileKeyboardLayout() {
+        if (!isMobileViewport() || !chatBox || !composer || !mainPanel) {
+            clearMobileKeyboardLayout();
+            return;
+        }
+
+        const hasFocus = document.activeElement === userInput;
+        const visualViewport = window.visualViewport;
+        const viewportHeight = visualViewport ? visualViewport.height : window.innerHeight;
+        const viewportOffsetTop = visualViewport ? visualViewport.offsetTop : 0;
+        const keyboardOffset = Math.max(0, Math.round(window.innerHeight - (viewportHeight + viewportOffsetTop)));
+        const keyboardOpen = hasFocus && keyboardOffset > 80;
+
+        if (!keyboardOpen) {
+            clearMobileKeyboardLayout();
+            return;
+        }
+
+        document.documentElement.style.setProperty('--mobile-keyboard-offset', `${keyboardOffset}px`);
+        document.documentElement.style.setProperty('--mobile-chat-lock-height', `${Math.max(120, Math.round(chatBox.clientHeight))}px`);
+        document.documentElement.style.setProperty('--mobile-composer-height', `${Math.max(0, Math.round(composer.offsetHeight))}px`);
+        document.body.classList.add('mobile-keyboard-open');
     }
 
     async function cancelCurrentPrompt() {
@@ -3966,6 +4024,9 @@
         currentSessionId = session.id;
         saveState();
         renderAll();
+        if (isMobileViewport()) {
+            setMobileSidebarOpen(false);
+        }
         return session;
     }
 
@@ -4833,11 +4894,22 @@
             handleSend();
         }
     });
+    userInput.addEventListener('focus', () => {
+        requestAnimationFrame(syncMobileKeyboardLayout);
+    });
+    userInput.addEventListener('blur', () => {
+        requestAnimationFrame(syncMobileKeyboardLayout);
+    });
     toggleSidebarBtn.addEventListener('click', () => {
         if (isMobileViewport()) {
             setMobileSidebarOpen(false);
         }
+        syncMobileKeyboardLayout();
         setApiWorkbenchOpen(true);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncMobileKeyboardLayout);
+        window.visualViewport.addEventListener('scroll', syncMobileKeyboardLayout);
+    }
     });
     closeApiWorkbenchBtn.addEventListener('click', () => setApiWorkbenchOpen(false));
     closeDiagramWorkbenchBtn.addEventListener('click', () => setDiagramWorkbenchOpen(false));
@@ -4882,6 +4954,7 @@
     loadState();
     loadModelInfo(false);
     renderDocsEndpoint('prompt_sync');
+    syncMobileKeyboardLayout();
     if (!isMobileViewport()) {
         userInput.focus();
     }
