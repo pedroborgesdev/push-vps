@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"sync/atomic"
 
+	"github.com/google/uuid"
 	"github.com/pedroborgesdev/papoql/internal/api/dto"
 	"github.com/pedroborgesdev/papoql/internal/api/logger"
 	"github.com/pedroborgesdev/papoql/internal/api/middlewares"
@@ -24,7 +24,6 @@ type Controller struct {
 	sessions       *session.Store
 	activePrompts  map[string]activePrompt
 	activePromptsM sync.Mutex
-	requestSeq     uint64
 }
 
 type activePrompt struct {
@@ -41,8 +40,7 @@ func NewController() *Controller {
 }
 
 func (c *Controller) nextRequestID() string {
-	id := atomic.AddUint64(&c.requestSeq, 1)
-	return fmt.Sprintf("req-%d", id)
+	return fmt.Sprintf("req-%s", uuid.NewString())
 }
 
 func (c *Controller) registerActivePrompt(requestID string, cancel context.CancelFunc, sessionID string) {
