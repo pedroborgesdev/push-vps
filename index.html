@@ -1,0 +1,4164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PapoQL | Workspace</title>
+    <link rel="icon" type="image/png" href="./icon.png">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sql-formatter@15.4.6/dist/sql-formatter.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #000000;
+            --bg-2: #050505;
+            --panel: rgba(8, 8, 10, 0.88);
+            --panel-strong: rgba(3, 3, 5, 0.96);
+            --panel-soft: rgba(14, 14, 18, 0.82);
+            --line: rgba(181, 109, 255, 0.12);
+            --line-strong: rgba(255, 143, 77, 0.22);
+            --text: #f3edf9;
+            --muted: #a899b3;
+            --accent: #b56dff;
+            --accent-2: #ff8f4d;
+            --accent-3: #ffb067;
+            --danger: #ff7272;
+            --user-bubble: linear-gradient(135deg, #ff8f4d, #ff6d3f 55%, #c95dff);
+            --bot-bubble: linear-gradient(180deg, rgba(12, 12, 14, 0.98), rgba(5, 5, 7, 0.98));
+            --shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+            --radius-xl: 28px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+            --content-width: 1500px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(181, 109, 255, 0.08), transparent 22%),
+                radial-gradient(circle at 85% 12%, rgba(255, 143, 77, 0.08), transparent 18%),
+                radial-gradient(circle at 50% 100%, rgba(181, 109, 255, 0.06), transparent 24%),
+                linear-gradient(160deg, #000000 0%, #050505 42%, #090909 100%);
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: radial-gradient(circle at center, black 30%, transparent 78%);
+            pointer-events: none;
+            opacity: 0.34;
+        }
+
+        button, textarea {
+            font: inherit;
+        }
+
+        #app-shell {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .workspace {
+            max-width: var(--content-width);
+            height: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 330px minmax(0, 1fr);
+            gap: 18px;
+        }
+
+        .sidebar,
+        .main-panel {
+            min-height: 0;
+            border: 1px solid var(--line);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar {
+            border-radius: var(--radius-xl);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            overflow: hidden;
+        }
+
+        .brand {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand-mark {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 14px;
+            margin: 0 auto;
+        }
+
+        .brand-icon {
+            width: 132px;
+            height: 132px;
+            border-radius: 0;
+            display: grid;
+            place-items: center;
+            background: transparent;
+            color: var(--accent);
+            border: 0;
+        }
+
+        .brand-icon img {
+            width: 124px;
+            height: 124px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .brand-copy h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.38rem;
+            letter-spacing: 0.03em;
+        }
+
+        .brand-copy p {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+            max-width: 240px;
+            line-height: 1.45;
+        }
+
+        .ghost-btn,
+        .primary-btn,
+        .chip-btn,
+        .session-btn,
+        #send-btn {
+            border: 0;
+            cursor: pointer;
+            transition: 180ms ease;
+        }
+
+        .ghost-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .ghost-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .status-card,
+        .insight-card,
+        .session-list,
+        .assistant-card {
+            border-radius: var(--radius-lg);
+            background: var(--panel-strong);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-card {
+            padding: 18px;
+            display: grid;
+            gap: 16px;
+            background:
+                linear-gradient(135deg, rgba(181, 109, 255, 0.08), transparent 55%),
+                linear-gradient(180deg, rgba(8, 8, 10, 0.97), rgba(3, 3, 5, 0.97));
+        }
+
+        .status-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-size: 0.68rem;
+            color: var(--accent);
+        }
+
+        .status-top strong {
+            display: block;
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+
+        .status-pulse {
+            min-width: 12px;
+            min-height: 12px;
+            border-radius: 999px;
+            background: var(--accent);
+            box-shadow: 0 0 0 0 rgba(181, 109, 255, 0.46);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(181, 109, 255, 0.44); }
+            70% { box-shadow: 0 0 0 10px rgba(181, 109, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(181, 109, 255, 0); }
+        }
+
+        .status-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .metric {
+            padding: 12px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+        }
+
+        .metric strong {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+        }
+
+        .primary-btn {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #180b21;
+            font-weight: 700;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 34px rgba(181, 109, 255, 0.24);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.84rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .session-list {
+            padding: 8px;
+            overflow: auto;
+            flex: 1;
+            min-height: 180px;
+        }
+
+        .session-btn {
+            width: 100%;
+            text-align: left;
+            padding: 14px;
+            border-radius: 16px;
+            color: var(--text);
+            background: transparent;
+            border: 1px solid transparent;
+            display: grid;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .session-btn strong {
+            font-size: 0.96rem;
+            font-weight: 600;
+        }
+
+        .session-btn span,
+        .session-btn small {
+            color: var(--muted);
+        }
+
+        .session-btn.active {
+            background: linear-gradient(135deg, rgba(181, 109, 255, 0.1), rgba(255, 143, 77, 0.08));
+            border-color: rgba(181, 109, 255, 0.18);
+        }
+
+        .session-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        .main-panel {
+            border-radius: 34px;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+
+        .topbar {
+            padding: 22px 24px 14px;
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .topbar-copy h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.35rem;
+            margin-bottom: 6px;
+        }
+
+        .topbar-copy p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .topbar-action-btn {
+            min-height: 40px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(181, 109, 255, 0.16);
+            background: linear-gradient(135deg, rgba(181, 109, 255, 0.12), rgba(255, 143, 77, 0.1));
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 180ms ease;
+        }
+
+        .topbar-action-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 143, 77, 0.24);
+            background: linear-gradient(135deg, rgba(181, 109, 255, 0.18), rgba(255, 143, 77, 0.16));
+        }
+
+        .topbar-action-btn i {
+            color: var(--accent-3);
+        }
+
+        .status-chip,
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            color: var(--text);
+            font-size: 0.88rem;
+        }
+
+        .meta-chip i,
+        .status-chip i {
+            color: var(--accent);
+        }
+
+        .api-workbench {
+            position: fixed;
+            inset: 24px;
+            z-index: 40;
+            padding: 16px;
+            border-radius: 24px;
+            border: 1px solid rgba(181, 109, 255, 0.16);
+            background:
+                linear-gradient(180deg, rgba(10, 10, 12, 0.96), rgba(4, 4, 6, 0.98));
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(0.985);
+            transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+        }
+
+        .api-workbench.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .api-workbench::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at top left, rgba(181, 109, 255, 0.08), transparent 26%),
+                radial-gradient(circle at top right, rgba(255, 143, 77, 0.08), transparent 22%);
+            pointer-events: none;
+        }
+
+        .diagram-workbench {
+            position: fixed;
+            inset: 24px;
+            z-index: 45;
+            padding: 16px;
+            border-radius: 24px;
+            border: 1px solid rgba(181, 109, 255, 0.16);
+            background: linear-gradient(180deg, rgba(9, 9, 11, 0.98), rgba(4, 4, 6, 0.99));
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.54);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(0.985);
+            transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+        }
+
+        .diagram-workbench.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .diagram-workbench::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at top left, rgba(181, 109, 255, 0.08), transparent 26%),
+                radial-gradient(circle at top right, rgba(255, 143, 77, 0.08), transparent 22%);
+            pointer-events: none;
+        }
+
+        .docs-workbench {
+            position: fixed;
+            inset: 24px;
+            z-index: 46;
+            padding: 16px;
+            border-radius: 24px;
+            border: 1px solid rgba(181, 109, 255, 0.16);
+            background: linear-gradient(180deg, rgba(9, 9, 11, 0.98), rgba(4, 4, 6, 0.99));
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.54);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(0.985);
+            transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+        }
+
+        .docs-workbench.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .docs-workbench::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at top left, rgba(181, 109, 255, 0.08), transparent 26%),
+                radial-gradient(circle at top right, rgba(255, 143, 77, 0.08), transparent 22%);
+            pointer-events: none;
+        }
+
+        .docs-workbench-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .docs-workbench-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .docs-workbench-header h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.12rem;
+            margin-top: 4px;
+        }
+
+        .docs-workbench-header p {
+            color: var(--muted);
+            font-size: 0.84rem;
+            margin-top: 6px;
+            max-width: 720px;
+            line-height: 1.45;
+        }
+
+        .docs-layout {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 290px minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .docs-sidebar {
+            min-height: 0;
+            overflow: auto;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.24);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+            align-content: start;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
+        }
+
+        .docs-sidebar::-webkit-scrollbar,
+        .docs-detail::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .docs-sidebar::-webkit-scrollbar-thumb,
+        .docs-detail::-webkit-scrollbar-thumb {
+            background: rgba(181, 109, 255, 0.22);
+            border-radius: 999px;
+        }
+
+        .docs-sidebar::-webkit-scrollbar-thumb:hover,
+        .docs-detail::-webkit-scrollbar-thumb:hover {
+            background: rgba(181, 109, 255, 0.4);
+        }
+
+        .docs-sidebar::-webkit-scrollbar-track,
+        .docs-detail::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .docs-category {
+            display: grid;
+            gap: 7px;
+        }
+
+        .docs-category + .docs-category {
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .docs-category-title {
+            color: var(--accent);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            padding: 0 4px;
+        }
+
+        .docs-endpoint-btn {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(11, 11, 14, 0.9), rgba(6, 6, 9, 0.9));
+            color: var(--text);
+            padding: 10px;
+            text-align: left;
+            display: grid;
+            gap: 6px;
+            cursor: pointer;
+            transition: 180ms ease;
+        }
+
+        .docs-endpoint-btn:hover {
+            border-color: rgba(181, 109, 255, 0.26);
+            transform: translateY(-1px);
+        }
+
+        .docs-endpoint-btn.is-active {
+            border-color: rgba(255, 143, 77, 0.5);
+            background: linear-gradient(180deg, rgba(58, 30, 14, 0.9), rgba(28, 14, 8, 0.94));
+            box-shadow: 0 0 0 1px rgba(255, 143, 77, 0.24);
+        }
+
+        .docs-endpoint-btn span {
+            display: inline-flex;
+            width: fit-content;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(181, 109, 255, 0.3);
+            background: rgba(181, 109, 255, 0.1);
+            color: #f1e7fb;
+            font-size: 0.7rem;
+            letter-spacing: 0.04em;
+        }
+
+        .docs-endpoint-btn strong {
+            font-size: 0.84rem;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .docs-endpoint-btn.is-active span {
+            border-color: rgba(255, 143, 77, 0.55);
+            background: rgba(255, 143, 77, 0.2);
+            color: #ffe5d5;
+        }
+
+        .docs-detail {
+            min-height: 0;
+            overflow: auto;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: linear-gradient(180deg, rgba(11, 11, 14, 0.96), rgba(6, 6, 9, 0.96));
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+            align-content: start;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
+        }
+
+        .docs-detail-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .docs-method-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(181, 109, 255, 0.28);
+            background: rgba(181, 109, 255, 0.12);
+            color: #f1e7fb;
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+        }
+
+        .docs-detail-path {
+            color: #d9c6ee;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
+            opacity: 0.9;
+        }
+
+        .docs-detail-title {
+            font-size: 0.95rem;
+        }
+
+        .docs-detail-desc {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+
+        .docs-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .docs-detail-card {
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.28);
+            padding: 10px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .docs-detail-card.is-single {
+            grid-column: 1 / -1;
+        }
+
+        .docs-detail-card strong {
+            font-size: 0.76rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #c9b6db;
+        }
+
+        .docs-detail-card pre {
+            margin: 0;
+            color: #eadcf7;
+            font-size: 0.74rem;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .diagram-workbench-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto auto minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .diagram-workbench-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .diagram-workbench-header h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.12rem;
+            margin-top: 4px;
+        }
+
+        .diagram-workbench-header p {
+            color: var(--muted);
+            font-size: 0.84rem;
+            margin-top: 6px;
+            max-width: 680px;
+            line-height: 1.45;
+        }
+
+        .diagram-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .diagram-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .diagram-surface {
+            min-height: 0;
+            overflow: auto;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background:
+                radial-gradient(circle at top left, rgba(181, 109, 255, 0.04), transparent 18%),
+                linear-gradient(180deg, rgba(7, 7, 9, 0.96), rgba(3, 3, 5, 0.98));
+            padding: 18px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
+        }
+
+        .diagram-surface::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .diagram-surface::-webkit-scrollbar-thumb {
+            background: rgba(181, 109, 255, 0.22);
+            border-radius: 999px;
+        }
+
+        .diagram-surface::-webkit-scrollbar-thumb:hover {
+            background: rgba(181, 109, 255, 0.4);
+        }
+
+        .diagram-surface::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .diagram-surface::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        .diagram-surface svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .diagram-empty {
+            min-height: 100%;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            color: var(--muted);
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .api-workbench-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .api-workbench-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .api-workbench-header h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.12rem;
+            margin-top: 4px;
+        }
+
+        .api-workbench-header p {
+            color: var(--muted);
+            font-size: 0.84rem;
+            margin-top: 6px;
+            max-width: 620px;
+            line-height: 1.45;
+        }
+
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .api-grid {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .api-control-stack {
+            min-height: 0;
+            display: grid;
+            grid-template-rows: auto auto;
+            gap: 12px;
+            align-content: start;
+        }
+
+        .api-card {
+            padding: 14px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(10, 10, 12, 0.96), rgba(5, 5, 7, 0.96));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: grid;
+            gap: 9px;
+            min-height: 0;
+            align-content: start;
+        }
+
+        .api-card-header {
+            display: grid;
+            gap: 4px;
+        }
+
+        .api-card-header .eyebrow {
+            margin-bottom: 1px;
+        }
+
+        .api-card strong {
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .api-card p {
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+        }
+
+        .api-inline {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .api-inline.tight {
+            gap: 6px;
+        }
+
+        .api-inline.input-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .combo-shell {
+            position: relative;
+            min-width: 0;
+        }
+
+        .combo-trigger {
+            width: 100%;
+            min-height: 36px;
+            padding: 9px 11px;
+            border-radius: 12px;
+            border: 1px solid rgba(181, 109, 255, 0.14);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.84rem;
+            text-align: left;
+        }
+
+        .combo-trigger:hover,
+        .combo-trigger[aria-expanded='true'] {
+            border-color: rgba(181, 109, 255, 0.28);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .combo-trigger:focus-visible {
+            border-color: rgba(181, 109, 255, 0.32);
+            box-shadow: 0 0 0 3px rgba(181, 109, 255, 0.08);
+            outline: none;
+        }
+
+        .combo-trigger-value {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .combo-trigger i {
+            flex: 0 0 auto;
+            color: var(--muted);
+            transition: transform 160ms ease;
+        }
+
+        .combo-shell.is-open .combo-trigger i {
+            transform: rotate(180deg);
+        }
+
+        .combo-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            z-index: 8;
+            display: grid;
+            gap: 4px;
+            padding: 8px;
+            border-radius: 14px;
+            border: 1px solid rgba(181, 109, 255, 0.18);
+            background: linear-gradient(180deg, rgba(12, 12, 15, 0.98), rgba(6, 6, 8, 0.98));
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            max-height: 220px;
+            overflow: auto;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-4px);
+            transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
+        }
+
+        .combo-shell.is-open .combo-menu {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .combo-menu::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .combo-menu::-webkit-scrollbar-thumb {
+            background: rgba(181, 109, 255, 0.22);
+            border-radius: 999px;
+        }
+
+        .combo-menu::-webkit-scrollbar-thumb:hover {
+            background: rgba(181, 109, 255, 0.4);
+        }
+
+        .combo-menu::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 999px;
+        }
+
+        .combo-group {
+            display: grid;
+            gap: 4px;
+        }
+
+        .combo-group + .combo-group {
+            margin-top: 2px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .combo-group-label {
+            padding: 4px 6px 2px;
+            color: #b56dff;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .combo-option {
+            width: 100%;
+            min-height: 34px;
+            padding: 8px 10px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 0.82rem;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .combo-option:hover,
+        .combo-option.is-selected {
+            background: rgba(181, 109, 255, 0.12);
+            color: #f1e7fb;
+        }
+
+        .combo-empty {
+            padding: 10px;
+            border-radius: 10px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .secondary-btn,
+        .outline-btn {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 9px 11px;
+            cursor: pointer;
+            transition: 180ms ease;
+            font-weight: 600;
+            font-size: 0.82rem;
+            line-height: 1.2;
+            min-height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        .secondary-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #180b21;
+        }
+
+        .outline-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+        }
+
+        .secondary-btn:hover,
+        .outline-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(181, 109, 255, 0.22);
+        }
+
+        .field-label {
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .api-input {
+            min-width: 0;
+            width: 100%;
+            min-height: 36px;
+            padding: 9px 11px;
+            border-radius: 12px;
+            border: 1px solid rgba(181, 109, 255, 0.14);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            outline: none;
+            font-size: 0.84rem;
+        }
+
+        .api-input:focus {
+            border-color: rgba(181, 109, 255, 0.3);
+            box-shadow: 0 0 0 3px rgba(181, 109, 255, 0.08);
+        }
+
+        .api-input::placeholder {
+            color: #8e7a9d;
+        }
+
+        .mini-stat {
+            padding: 10px 12px;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: grid;
+            gap: 2px;
+        }
+
+        .mini-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .mini-stat span {
+            color: var(--muted);
+            font-size: 0.74rem;
+        }
+
+        .mini-stat strong {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
+
+        .api-output-card {
+            grid-column: span 1;
+            min-height: 0;
+            grid-template-rows: auto auto 1fr;
+        }
+
+        .api-output-shell {
+            min-height: 0;
+            height: 100%;
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.26);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 12px;
+            overflow: auto;
+        }
+
+        .api-output-shell pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #e9dcf7;
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 0.76rem;
+            line-height: 1.45;
+        }
+
+        .api-output-shell.api-output-error pre {
+            color: #ffb9b9;
+        }
+
+        .api-caption {
+            color: var(--muted);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        #chat-box {
+            min-height: 0;
+            overflow: auto;
+            padding: 28px 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: min(860px, 88%);
+            opacity: 1;
+            transform: none;
+        }
+
+        .message-wrapper.message-enter-user {
+            animation: messageEnterUser 600ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .message-wrapper.message-enter-bot {
+            animation: messageEnterBot 650ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes messageEnterUser {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.985);
+                filter: blur(1px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes messageEnterBot {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.985);
+                filter: blur(1px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 0.76rem;
+            padding: 0 4px;
+        }
+
+        .message-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: inline-grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--accent);
+            overflow: hidden;
+            flex: 0 0 auto;
+        }
+
+        .message-avatar.bot-avatar {
+            width: 46px;
+            height: 46px;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .message-avatar.bot-avatar img {
+            width: 42px;
+            height: 42px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .message {
+            padding: 16px 18px;
+            border-radius: 22px;
+            line-height: 1.7;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, rgba(255, 143, 77, 0.28), rgba(255, 109, 63, 0.24) 55%, rgba(201, 93, 255, 0.26));
+            color: #fff7f1;
+            border-color: rgba(255, 143, 77, 0.46);
+            box-shadow: 0 0 0 1px rgba(201, 93, 255, 0.2), 0 12px 30px rgba(0, 0, 0, 0.22);
+            border-bottom-right-radius: 8px;
+        }
+
+        .message.bot {
+            background: var(--bot-bubble);
+            border-bottom-left-radius: 8px;
+        }
+
+        .message.bot.bot-typing-text {
+            color: var(--accent-2);
+        }
+
+        .message.user.user-sending-text {
+            filter: saturate(1.08);
+        }
+
+        .message.bot.error {
+            border-color: rgba(255, 114, 114, 0.24);
+            background: linear-gradient(180deg, rgba(28, 10, 12, 0.96), rgba(16, 6, 8, 0.96));
+            color: #ffd6d6;
+        }
+
+        .message.bot.typing-message {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 6px;
+            min-height: 58px;
+        }
+
+        .typing-thought {
+            color: var(--accent);
+            white-space: normal;
+            overflow-wrap: anywhere;
+            max-width: 520px;
+            animation: thoughtGlow 1.4s ease-in-out infinite;
+        }
+
+        .typing-thought.is-typing::after {
+            content: '|';
+            margin-left: 2px;
+            animation: caretBlink 0.7s steps(1, end) infinite;
+        }
+
+        .typing-thoughts {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 6px;
+            min-height: 24px;
+        }
+
+        .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 999px;
+            background: var(--accent);
+            animation: typingPulse 1s ease-in-out infinite;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.12s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.24s;
+        }
+
+        @keyframes typingPulse {
+            0%,
+            100% {
+                opacity: 0.35;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.35);
+            }
+        }
+
+        @keyframes thoughtGlow {
+            0%,
+            100% {
+                opacity: 0.72;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes caretBlink {
+            0%,
+            49% {
+                opacity: 1;
+            }
+            50%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .message p { margin-bottom: 12px; }
+        .message p:last-child { margin-bottom: 0; }
+        .message ul,
+        .message ol {
+            margin: 8px 0 12px 20px;
+        }
+
+        .message code {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffb786;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .message pre {
+            margin-top: 12px;
+            padding: 14px;
+            overflow: auto;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .message pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .resend-btn {
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            color: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+        }
+
+        .resend-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sql-btn {
+            margin-top: 0;
+            padding: 6px 11px;
+            border-radius: 10px;
+            background: rgba(255, 143, 77, 0.08);
+            color: #ffb067;
+            border: 1px solid rgba(255, 143, 77, 0.4);
+            cursor: pointer;
+            font-size: 0.74rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+        }
+
+        .sql-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 143, 77, 0.14);
+            border-color: rgba(255, 143, 77, 0.55);
+        }
+
+        .message-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 4px 0;
+        }
+
+        .sql-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 180ms ease, visibility 180ms ease;
+        }
+
+        .sql-modal-overlay.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .sql-modal {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(9, 9, 11, 0.98), rgba(4, 4, 6, 0.99));
+            border: 1px solid rgba(181, 109, 255, 0.16);
+            border-radius: 24px;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.54);
+            padding: 18px;
+            max-width: 620px;
+            width: min(92vw, 620px);
+            max-height: min(76vh, 680px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transform: scale(0.985);
+            transition: transform 180ms ease;
+        }
+
+        .sql-modal-overlay.is-open .sql-modal {
+            transform: scale(1);
+        }
+
+        .sql-modal::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at top left, rgba(181, 109, 255, 0.08), transparent 26%),
+                radial-gradient(circle at top right, rgba(255, 143, 77, 0.08), transparent 22%);
+            pointer-events: none;
+        }
+
+        .sql-modal > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sql-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 4px 2px;
+        }
+
+        .sql-modal-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.02rem;
+            font-weight: 600;
+            color: #f0e4ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sql-modal-close {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sql-modal-close:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .sql-modal-body {
+            min-height: 0;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.26);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 14px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
+        }
+
+        .sql-modal-body pre {
+            margin: 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.88rem;
+            color: #e0cfff;
+            white-space: pre-wrap;
+            word-break: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.5;
+        }
+
+        .composer {
+            padding: 18px 24px 24px;
+            background:
+                linear-gradient(180deg, transparent, rgba(10, 4, 14, 0.3)),
+                rgba(4, 4, 6, 0.82);
+            border-top: 1px solid rgba(181, 109, 255, 0.12);
+        }
+
+        .composer-shell {
+            padding: 16px;
+            border-radius: 24px;
+            border: 1px solid rgba(181, 109, 255, 0.12);
+            background:
+                linear-gradient(135deg, rgba(181, 109, 255, 0.04), rgba(255, 143, 77, 0.03)),
+                rgba(8, 8, 10, 0.96);
+            display: grid;
+            gap: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .composer-top {
+            display: flex;
+            gap: 14px;
+            align-items: flex-end;
+        }
+
+        #user-input {
+            flex: 1;
+            height: 58px;
+            min-height: 58px;
+            max-height: 58px;
+            resize: none;
+            overflow-y: auto;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 1rem;
+            line-height: 1.6;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.28) transparent;
+        }
+
+        #user-input::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #user-input::-webkit-scrollbar-thumb {
+            background: rgba(181, 109, 255, 0.28);
+            border-radius: 999px;
+        }
+
+        #user-input::-webkit-scrollbar-thumb:hover {
+            background: rgba(181, 109, 255, 0.46);
+        }
+
+        #user-input::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #user-input::placeholder {
+            color: #b597c9;
+        }
+
+        #send-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #180b21;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        #send-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 14px 30px rgba(255, 143, 77, 0.24);
+        }
+
+        #send-btn.is-canceling {
+            background: linear-gradient(135deg, #ff8f4d, #e84040);
+            color: #ffe9db;
+        }
+
+        #send-btn.is-canceling:hover {
+            box-shadow: 0 14px 30px rgba(232, 64, 64, 0.24);
+        }
+
+        .composer-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .composer-hint {
+            color: #c3a9d6;
+            font-size: 0.84rem;
+        }
+
+        .context-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.78rem;
+            color: #c3a9d6;
+            flex-shrink: 0;
+        }
+
+        .context-bar-label {
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .context-bar-track {
+            width: 110px;
+            height: 5px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .context-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: rgba(181, 109, 255, 0.7);
+            width: 0%;
+            transition: width 0.5s ease, background 0.5s ease;
+        }
+
+        .context-bar-fill.ctx-warn  { background: #ff8f4d; }
+        .context-bar-fill.ctx-danger { background: #e84040; }
+
+        .empty-state {
+            padding: 28px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            color: var(--muted);
+            text-align: center;
+        }
+
+        #chat-box,
+        .session-list,
+        .api-output-shell,
+        .sql-modal-body,
+        .combo-menu,
+        .diagram-surface {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
+        }
+
+        #chat-box::-webkit-scrollbar,
+        .session-list::-webkit-scrollbar,
+        .api-output-shell::-webkit-scrollbar,
+        .sql-modal-body::-webkit-scrollbar,
+        .combo-menu::-webkit-scrollbar,
+        .diagram-surface::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        #chat-box::-webkit-scrollbar-thumb,
+        .session-list::-webkit-scrollbar-thumb,
+        .api-output-shell::-webkit-scrollbar-thumb,
+        .sql-modal-body::-webkit-scrollbar-thumb,
+        .combo-menu::-webkit-scrollbar-thumb,
+        .diagram-surface::-webkit-scrollbar-thumb {
+            background: rgba(181, 109, 255, 0.22);
+            border-radius: 999px;
+        }
+
+        #chat-box::-webkit-scrollbar-thumb:hover,
+        .session-list::-webkit-scrollbar-thumb:hover,
+        .api-output-shell::-webkit-scrollbar-thumb:hover,
+        .sql-modal-body::-webkit-scrollbar-thumb:hover,
+        .combo-menu::-webkit-scrollbar-thumb:hover,
+        .diagram-surface::-webkit-scrollbar-thumb:hover {
+            background: rgba(181, 109, 255, 0.4);
+        }
+
+        #chat-box::-webkit-scrollbar-track,
+        .session-list::-webkit-scrollbar-track,
+        .api-output-shell::-webkit-scrollbar-track,
+        .sql-modal-body::-webkit-scrollbar-track,
+        .combo-menu::-webkit-scrollbar-track,
+        .diagram-surface::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        @media (max-width: 1120px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-height: 38vh;
+            }
+
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .api-control-stack {
+                grid-template-rows: auto;
+            }
+
+            .mini-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .api-workbench {
+                inset: 14px;
+            }
+
+            .diagram-workbench {
+                inset: 14px;
+            }
+
+            .docs-workbench {
+                inset: 14px;
+            }
+
+        }
+
+        @media (max-width: 720px) {
+            body {
+                overflow: auto;
+            }
+
+            #app-shell {
+                height: auto;
+                min-height: 100vh;
+                padding: 12px;
+            }
+
+            .workspace {
+                height: auto;
+            }
+
+            .sidebar,
+            .main-panel {
+                border-radius: 24px;
+            }
+
+            .topbar,
+            #chat-box,
+            .composer {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+
+            .api-workbench {
+                inset: 10px;
+                padding: 16px;
+            }
+
+            .diagram-workbench {
+                inset: 10px;
+                padding: 16px;
+            }
+
+            .docs-workbench {
+                inset: 10px;
+                padding: 16px;
+            }
+
+            .api-workbench-header {
+                flex-direction: column;
+            }
+
+            .diagram-workbench-header {
+                flex-direction: column;
+            }
+
+            .docs-workbench-header {
+                flex-direction: column;
+            }
+
+            .docs-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .docs-sidebar {
+                max-height: 38vh;
+            }
+
+            .docs-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .composer-top {
+                align-items: stretch;
+            }
+
+            #send-btn {
+                width: 50px;
+                height: 50px;
+            }
+
+            .message-wrapper {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app-shell">
+    <div class="workspace">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">
+                    <div class="brand-icon"><img src="./icon.png" alt="PapoQL logo"></div>
+                    <div class="brand-copy">
+                        <h1>PapoQL</h1>
+                        <p>SQLite workspace para conversa e execucao guiada</p>
+                    </div>
+                </div>
+                <button class="ghost-btn" id="toggle-sidebar" title="Atualizar painel">
+                    <i class="fas fa-sliders"></i>
+                </button>
+            </div>
+
+            <section class="status-card">
+                <div class="status-top">
+                    <div>
+                        <span class="eyebrow">Workspace Status</span>
+                        <strong>Chat pronto para consultas, inserts e revisoes</strong>
+                    </div>
+                    <span class="status-pulse"></span>
+                </div>
+                <div class="status-metrics">
+                    <div class="metric">
+                        <span>Sessoes</span>
+                        <strong id="session-count">0</strong>
+                    </div>
+                    <div class="metric">
+                        <span>Mensagens</span>
+                        <strong id="message-count">0</strong>
+                    </div>
+                </div>
+                <button class="primary-btn" id="new-chat-btn">
+                    <i class="fas fa-plus"></i>
+                    Nova sessao
+                </button>
+            </section>
+
+            <div class="section-title">
+                <span>Chat Sessions</span>
+                <span id="session-subtitle">memoria local</span>
+            </div>
+            <div class="session-list" id="session-list"></div>
+        </aside>
+
+        <main class="main-panel">
+            <header class="topbar">
+                <div class="topbar-copy">
+                    <h2 id="chat-title">Nova sessao</h2>
+                    <p id="chat-subtitle">Converse com o motor local e mantenha cada assunto em uma sessao separada.</p>
+                </div>
+                <div class="topbar-actions">
+                    <button class="topbar-action-btn" id="open-docs-topbar-btn">
+                        <i class="fas fa-book-open"></i>
+                        Ver docs API
+                    </button>
+                    <button class="topbar-action-btn" id="open-diagram-topbar-btn">
+                        <i class="fas fa-diagram-project"></i>
+                        Ver diagrama do banco
+                    </button>
+                    <div class="status-chip"><i class="fas fa-bolt"></i><span>API local</span></div>
+                    <div class="meta-chip"><i class="fas fa-clock"></i><span id="session-timestamp">agora</span></div>
+                </div>
+            </header>
+
+            <section class="api-workbench" id="api-workbench" aria-hidden="true">
+                <div class="api-workbench-inner">
+                    <div class="api-workbench-header">
+                        <div>
+                            <span class="eyebrow">Configuracoes</span>
+                            <h3>Operacoes da API e configuracao do workspace</h3>
+                            <p>Este widget reproduz no site as mesmas operacoes disponiveis no CLI para modelos e schema, ocupando quase toda a tela quando aberto.</p>
+                        </div>
+                        <button class="icon-btn" id="close-api-workbench-btn" title="Fechar configuracoes">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="api-grid">
+                        <div class="api-control-stack">
+                            <article class="api-card">
+                                <div class="api-card-header">
+                                    <span class="eyebrow">Models</span>
+                                    <strong>Modelo ativo</strong>
+                                    <p>Consulte, liste e troque o provider atual sem sair da conversa.</p>
+                                </div>
+                                <div class="api-inline tight">
+                                    <button class="outline-btn" id="refresh-model-btn"><i class="fas fa-eye"></i> Ver atual</button>
+                                    <button class="outline-btn" id="list-models-btn"><i class="fas fa-list"></i> Listar</button>
+                                </div>
+                                <label class="field-label" for="model-combobox-trigger">Trocar modelo</label>
+                                <div class="api-inline input-row">
+                                    <div class="combo-shell" id="model-combobox">
+                                        <button class="combo-trigger" id="model-combobox-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                                            <span class="combo-trigger-value" id="model-combobox-value">Selecione um modelo</span>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </button>
+                                        <div class="combo-menu" id="model-combobox-menu" role="listbox" aria-label="Modelos disponiveis"></div>
+                                    </div>
+                                    <button class="secondary-btn" id="save-model-btn"><i class="fas fa-wand-magic-sparkles"></i> Aplicar</button>
+                                </div>
+                                <div class="mini-stat-grid">
+                                    <div class="mini-stat">
+                                        <span>Modelo atual</span>
+                                        <strong id="current-model-value">--</strong>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <span>Origem</span>
+                                        <strong>CLI + API</strong>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="api-card">
+                                <div class="api-card-header">
+                                    <span class="eyebrow">Schema</span>
+                                    <strong>Banco e estrutura</strong>
+                                    <p>Use os mesmos endpoints do fluxo de database para gerar e consultar o schema salvo.</p>
+                                </div>
+                                <div class="api-inline tight">
+                                    <button class="outline-btn" id="generate-schema-btn"><i class="fas fa-gears"></i> Gerar schema</button>
+                                    <button class="outline-btn" id="view-schema-btn"><i class="fas fa-table"></i> Ver schema</button>
+                                    <button class="outline-btn" id="view-diagram-btn"><i class="fas fa-diagram-project"></i> Ver diagrama</button>
+                                </div>
+                                <div class="mini-stat-grid">
+                                    <div class="mini-stat">
+                                        <span>Status</span>
+                                        <strong id="schema-status-value">Aguardando consulta</strong>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <span>Fluxo</span>
+                                        <strong>Workspace local</strong>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+
+                        <article class="api-card api-output-card">
+                            <span class="eyebrow">Endpoint Output</span>
+                            <strong id="api-output-title">Area de operacoes pronta</strong>
+                            <p id="api-output-caption" class="api-caption">Os controles ao lado chamam os mesmos endpoints usados pelo CLI, mas em uma composicao mais compacta.</p>
+                            <div class="api-output-shell" id="api-output-shell">
+                                <pre id="api-output">Selecione uma acao de modelo ou schema para ver o retorno aqui.</pre>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="diagram-workbench" id="diagram-workbench" aria-hidden="true">
+                <div class="diagram-workbench-inner">
+                    <div class="diagram-workbench-header">
+                        <div>
+                            <span class="eyebrow">Diagrama</span>
+                            <h3>Mapa visual do banco</h3>
+                            <p>O diagrama abaixo e montado a partir do schema textual retornado por GET /v1/schema, convertendo tabelas, colunas e relacionamentos em um ER diagram.</p>
+                        </div>
+                        <button class="icon-btn" id="close-diagram-workbench-btn" title="Fechar diagrama">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="diagram-meta">
+                        <div class="diagram-chip"><i class="fas fa-table-cells-large"></i><span id="diagram-table-count">0 tabelas</span></div>
+                        <div class="diagram-chip"><i class="fas fa-link"></i><span id="diagram-relation-count">0 relacoes</span></div>
+                    </div>
+                    <div class="diagram-surface" id="diagram-surface">
+                        <div class="diagram-empty" id="diagram-empty-state">Abra o diagrama depois de consultar o schema para visualizar a estrutura do banco.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="docs-workbench" id="docs-workbench" aria-hidden="true">
+                <div class="docs-workbench-inner">
+                    <div class="docs-workbench-header">
+                        <div>
+                            <span class="eyebrow">Documentacao</span>
+                            <h3>API 8801 - Endpoints, payloads e retornos</h3>
+                            <p>Referencia rapida dos endpoints da API local em localhost:8801. Exemplos abaixo mostram payload de request e formato de resposta.</p>
+                        </div>
+                        <button class="icon-btn" id="close-docs-workbench-btn" title="Fechar documentacao">
+                            <i class="fas fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="docs-layout">
+                        <aside class="docs-sidebar">
+                            <div class="docs-category">
+                                <div class="docs-category-title">Prompt</div>
+                                <button type="button" class="docs-endpoint-btn is-active" data-endpoint-id="prompt_sync">
+                                    <span>POST /v1/prompt</span>
+                                    <strong>Prompt sincronizado</strong>
+                                </button>
+                                <button type="button" class="docs-endpoint-btn" data-endpoint-id="prompt_stream">
+                                    <span>POST /v1/prompt/stream</span>
+                                    <strong>Prompt em streaming (SSE)</strong>
+                                </button>
+                                <button type="button" class="docs-endpoint-btn" data-endpoint-id="prompt_cancel">
+                                    <span>POST /v1/prompt/cancel</span>
+                                    <strong>Cancelar processamento ativo</strong>
+                                </button>
+                            </div>
+
+                            <div class="docs-category">
+                                <div class="docs-category-title">Contexto</div>
+                                <button type="button" class="docs-endpoint-btn" data-endpoint-id="clear_context">
+                                    <span>DELETE /v1/context</span>
+                                    <strong>Limpar contexto da sessao</strong>
+                                </button>
+                            </div>
+
+                            <div class="docs-category">
+                                <div class="docs-category-title">Modelos</div>
+                                <button type="button" class="docs-endpoint-btn" data-endpoint-id="get_model">
+                                    <span>GET /v1/model</span>
+                                    <strong>Consultar modelo atual</strong>
+                                </button>
+                                <button type="button" class="docs-endpoint-btn" data-endpoint-id="put_model">
+                                    <span>PUT /v1/model</span>
+                                    <strong>Trocar modelo ativo</strong>
+                                </button>
+                            </div>
+
+                            <div class="docs-category">
+                                <div class="docs-category-title">Schema</div>
+                                <button type="button" class="docs-endpoint-btn" data-endpoint-id="post_schema">
+                                    <span>POST /v1/schema</span>
+                                    <strong>Gerar schema</strong>
+                                </button>
+                                <button type="button" class="docs-endpoint-btn" data-endpoint-id="get_schema">
+                                    <span>GET /v1/schema</span>
+                                    <strong>Consultar schema</strong>
+                                </button>
+                            </div>
+                        </aside>
+
+                        <section class="docs-detail">
+                            <div class="docs-detail-head">
+                                <span class="docs-method-chip" id="docs-method-chip">POST</span>
+                                <span class="docs-detail-path" id="docs-detail-path">/v1/prompt</span>
+                            </div>
+                            <strong class="docs-detail-title" id="docs-detail-title">Prompt sincronizado</strong>
+                            <p class="docs-detail-desc" id="docs-detail-desc">Processa uma pergunta e retorna resposta final no formato JSON.</p>
+
+                            <div class="docs-detail-grid">
+                                <article class="docs-detail-card" id="docs-payload-card">
+                                    <strong>Payload</strong>
+                                    <pre id="docs-detail-payload">{ "prompt": "Quais os 10 clientes mais recentes?" }</pre>
+                                </article>
+                                <article class="docs-detail-card" id="docs-response-card">
+                                    <strong>Retorno</strong>
+                                    <pre id="docs-detail-response">{
+  "prompt": "...",
+  "response": "...",
+  "sql": "...",
+  "current_context_usage": 0.01,
+  "max_context_usage": 0.19,
+  "max_request_size_kb": 20
+}</pre>
+                                </article>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </section>
+
+            <section id="chat-box"></section>
+
+            <footer class="composer">
+                <div class="composer-shell">
+                    <div class="composer-top">
+                        <textarea id="user-input" rows="1" placeholder="Descreva a consulta, a alteracao de dados ou a pergunta que voce quer resolver..."></textarea>
+                        <button id="send-btn" title="Enviar mensagem">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="composer-meta">
+                        <div class="composer-hint">Enter envia. Shift + Enter quebra linha. As sessoes ficam salvas localmente no navegador.</div>
+                        <div class="context-bar-wrap" id="context-bar-wrap">
+                            <button id="clear-context-btn" title="Limpar contexto da conversa" style="background:none;border:none;cursor:pointer;color:#c3a9d6;font-size:0.78rem;padding:0;display:flex;align-items:center;gap:5px;opacity:0.7;transition:opacity 0.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7"><i class="fas fa-rotate-left"></i> Limpar contexto</button>
+                            <span class="context-bar-label" id="context-bar-label">? / ?</span>
+                            <div class="context-bar-track">
+                                <div class="context-bar-fill" id="context-bar-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+</div>
+
+<script>
+    marked.setOptions({ breaks: true, gfm: true });
+
+    const API_BASE = 'http://localhost:8801/v1';
+    const STORAGE_KEY = 'papoql.sessions.v2';
+    const ACTIVE_SESSION_KEY = 'papoql.activeSession.v2';
+    const META_KEY = 'papoql.meta.v1';
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const sessionList = document.getElementById('session-list');
+    const chatTitle = document.getElementById('chat-title');
+    const chatSubtitle = document.getElementById('chat-subtitle');
+    const sessionTimestamp = document.getElementById('session-timestamp');
+    const sessionCount = document.getElementById('session-count');
+    const messageCount = document.getElementById('message-count');
+    const openDiagramTopbarBtn = document.getElementById('open-diagram-topbar-btn');
+    const openDocsTopbarBtn = document.getElementById('open-docs-topbar-btn');
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+    const apiWorkbench = document.getElementById('api-workbench');
+    const closeApiWorkbenchBtn = document.getElementById('close-api-workbench-btn');
+    const refreshModelBtn = document.getElementById('refresh-model-btn');
+    const listModelsBtn = document.getElementById('list-models-btn');
+    const saveModelBtn = document.getElementById('save-model-btn');
+    const generateSchemaBtn = document.getElementById('generate-schema-btn');
+    const viewSchemaBtn = document.getElementById('view-schema-btn');
+    const viewDiagramBtn = document.getElementById('view-diagram-btn');
+    const modelCombobox = document.getElementById('model-combobox');
+    const modelComboboxTrigger = document.getElementById('model-combobox-trigger');
+    const modelComboboxValue = document.getElementById('model-combobox-value');
+    const modelComboboxMenu = document.getElementById('model-combobox-menu');
+    const currentModelValue = document.getElementById('current-model-value');
+    const schemaStatusValue = document.getElementById('schema-status-value');
+    const apiOutputTitle = document.getElementById('api-output-title');
+    const apiOutputCaption = document.getElementById('api-output-caption');
+    const apiOutput = document.getElementById('api-output');
+    const apiOutputShell = document.getElementById('api-output-shell');
+    const diagramWorkbench = document.getElementById('diagram-workbench');
+    const closeDiagramWorkbenchBtn = document.getElementById('close-diagram-workbench-btn');
+    const docsWorkbench = document.getElementById('docs-workbench');
+    const closeDocsWorkbenchBtn = document.getElementById('close-docs-workbench-btn');
+    const docsMethodChip = document.getElementById('docs-method-chip');
+    const docsDetailPath = document.getElementById('docs-detail-path');
+    const docsDetailTitle = document.getElementById('docs-detail-title');
+    const docsDetailDesc = document.getElementById('docs-detail-desc');
+    const docsDetailPayload = document.getElementById('docs-detail-payload');
+    const docsDetailResponse = document.getElementById('docs-detail-response');
+    const docsPayloadCard = document.getElementById('docs-payload-card');
+    const docsResponseCard = document.getElementById('docs-response-card');
+    const docsEndpointButtons = Array.from(document.querySelectorAll('.docs-endpoint-btn'));
+    const diagramSurface = document.getElementById('diagram-surface');
+    const diagramEmptyState = document.getElementById('diagram-empty-state');
+    const diagramTableCount = document.getElementById('diagram-table-count');
+    const diagramRelationCount = document.getElementById('diagram-relation-count');
+
+    let sessions = [];
+    let currentSessionId = null;
+    let botResponseAnimator = null;
+    let userMessageAnimator = null;
+    let apiWorkbenchOpen = false;
+    let diagramWorkbenchOpen = false;
+    let docsWorkbenchOpen = false;
+    let availableModels = [];
+    let selectedModelName = '';
+    let latestSchemaText = '';
+    let maxRequestSizeKb = 20;
+    const promptStates = new Map();
+
+    const DOCS_ENDPOINTS = {
+        prompt_sync: {
+            method: 'POST',
+            path: '/v1/prompt',
+            title: 'Prompt sincronizado',
+            description: 'Processa uma pergunta e retorna resposta final no formato JSON.',
+            payload: '{ "prompt": "Quais os 10 clientes mais recentes?" }',
+            response: '{\n  "prompt": "...",\n  "response": "...",\n  "sql": "...",\n  "current_context_usage": 0.01,\n  "max_context_usage": 0.19,\n  "max_request_size_kb": 20\n}'
+        },
+        prompt_stream: {
+            method: 'POST',
+            path: '/v1/prompt/stream',
+            title: 'Prompt em streaming (SSE)',
+            description: 'Envia eventos de pensamento e resultado final via text/event-stream.',
+            payload: '{ "prompt": "..." }',
+            response: '{ "event": "status", "data": { "message": "starting processing" } }\n{ "event": "thought", "data": { "stage": "planning", "message": "..." } }\n{ "event": "result", "data": { "response": "...", "sql": "..." } }\n{ "event": "done", "data": { "ok": true } }'
+        },
+        prompt_cancel: {
+            method: 'POST',
+            path: '/v1/prompt/cancel',
+            title: 'Cancelar processamento ativo',
+            description: 'Cancela uma solicitacao em andamento do endpoint de streaming.',
+            payload: '{ "request_id": "req-12" }',
+            response: '{ "canceled": true, "request_id": "req-12" }'
+        },
+        clear_context: {
+            method: 'DELETE',
+            path: '/v1/context',
+            title: 'Limpar contexto da sessao',
+            description: 'Apaga o contexto da sessao atual para futuras respostas.',
+            payload: 'nenhum',
+            response: '{ "cleared": true }'
+        },
+        get_model: {
+            method: 'GET',
+            path: '/v1/model',
+            title: 'Consultar modelo atual e lista',
+            description: 'Retorna o modelo atual e os modelos disponiveis por provider.',
+            payload: 'nenhum',
+            response: '{\n  "current": "openrouter/openai/gpt-oss-120b:free",\n  "models": {\n    "gemini": ["..."],\n    "openai": ["..."],\n    "hugging_face": ["..."],\n    "openrouter": ["..."]\n  }\n}'
+        },
+        put_model: {
+            method: 'PUT',
+            path: '/v1/model',
+            title: 'Trocar modelo ativo',
+            description: 'Define o modelo que sera usado nas proximas requisicoes.',
+            payload: '{ "model": "openrouter/openai/gpt-oss-120b:free" }',
+            response: '{ "model": "openrouter/openai/gpt-oss-120b:free" }'
+        },
+        post_schema: {
+            method: 'POST',
+            path: '/v1/schema',
+            title: 'Gerar schema',
+            description: 'Gera o schema textual atual com base no banco configurado.',
+            payload: 'nenhum',
+            response: '{ "schema": "TABLE ..." }'
+        },
+        get_schema: {
+            method: 'GET',
+            path: '/v1/schema',
+            title: 'Consultar schema',
+            description: 'Retorna o schema textual salvo em .papoql/schema.txt.',
+            payload: 'nenhum',
+            response: '{ "schema": "TABLE ..." }'
+        }
+    };
+
+
+    function uid() {
+        return `session-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+    }
+
+    function formatTime(value) {
+        return new Intl.DateTimeFormat('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(new Date(value));
+    }
+
+    function formatDate(value) {
+        return new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit',
+            month: 'short',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(new Date(value));
+    }
+
+    function truncateText(value, maxLength = 42) {
+        const text = String(value || '').trim();
+        if (!text) {
+            return 'Nova sessao...';
+        }
+
+        if (text.length <= maxLength) {
+            return `${text}...`;
+        }
+
+        return `${text.slice(0, maxLength).trimEnd()}...`;
+    }
+
+    function getSessionPreview(session) {
+        if (!session || !Array.isArray(session.messages)) {
+            return 'Nova sessao...';
+        }
+
+        const firstUserMessage = session.messages.find((message) => message.sender === 'user' && String(message.text || '').trim());
+        const firstMessage = firstUserMessage || session.messages.find((message) => String(message.text || '').trim());
+        return truncateText(firstMessage?.text || 'Nova sessao');
+    }
+
+    function setApiWorkbenchOpen(open) {
+        apiWorkbenchOpen = open;
+        apiWorkbench.classList.toggle('is-open', open);
+        apiWorkbench.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (!open) {
+            setModelComboboxOpen(false);
+        }
+    }
+
+    function setDiagramWorkbenchOpen(open) {
+        diagramWorkbenchOpen = open;
+        diagramWorkbench.classList.toggle('is-open', open);
+        diagramWorkbench.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+
+    function setDocsWorkbenchOpen(open) {
+        docsWorkbenchOpen = open;
+        docsWorkbench.classList.toggle('is-open', open);
+        docsWorkbench.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+
+    function setModelComboboxOpen(open) {
+        modelCombobox.classList.toggle('is-open', open);
+        modelComboboxTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function renderDocsEndpoint(endpointId) {
+        const endpoint = DOCS_ENDPOINTS[endpointId];
+        if (!endpoint) {
+            return;
+        }
+
+        docsMethodChip.textContent = endpoint.method;
+        docsDetailPath.textContent = endpoint.path;
+        docsDetailTitle.textContent = endpoint.title;
+        docsDetailDesc.textContent = endpoint.description;
+        docsDetailPayload.textContent = endpoint.payload;
+        docsDetailResponse.textContent = endpoint.response;
+
+        const hasPayload = String(endpoint.payload || '').trim().toLowerCase() !== 'nenhum';
+        docsPayloadCard.style.display = hasPayload ? 'grid' : 'none';
+        docsResponseCard.classList.toggle('is-single', !hasPayload);
+
+        docsEndpointButtons.forEach((button) => {
+            button.classList.toggle('is-active', button.dataset.endpointId === endpointId);
+        });
+    }
+
+    function setSelectedModel(modelName) {
+        selectedModelName = modelName || '';
+        modelComboboxValue.textContent = selectedModelName || 'Selecione um modelo';
+
+        Array.from(modelComboboxMenu.querySelectorAll('.combo-option')).forEach((option) => {
+            option.classList.toggle('is-selected', option.dataset.model === selectedModelName);
+        });
+    }
+
+    function getPromptState(sessionId, createIfMissing = false) {
+        if (!sessionId) {
+            return null;
+        }
+
+        if (!promptStates.has(sessionId) && createIfMissing) {
+            promptStates.set(sessionId, {
+                isProcessing: false,
+                requestId: '',
+                abortController: null,
+                typingNode: null,
+                typingThoughtQueue: [],
+                typingThoughtAnimating: false,
+            });
+        }
+
+        return promptStates.get(sessionId) || null;
+    }
+
+    function isSessionProcessing(sessionId) {
+        const state = getPromptState(sessionId, false);
+        return Boolean(state && state.isProcessing);
+    }
+
+    function refreshPromptComposerState() {
+        const isProcessingCurrentSession = isSessionProcessing(currentSessionId);
+        sendBtn.classList.toggle('is-canceling', isProcessingCurrentSession);
+        sendBtn.title = isProcessingCurrentSession ? 'Cancelar processamento' : 'Enviar mensagem';
+        sendBtn.innerHTML = isProcessingCurrentSession
+            ? '<i class="fas fa-stop"></i>'
+            : '<i class="fas fa-paper-plane"></i>';
+        userInput.disabled = isProcessingCurrentSession;
+        if (!isProcessingCurrentSession) {
+            userInput.focus();
+        }
+    }
+
+    function setPromptProcessingState(sessionId, isProcessing) {
+        if (!sessionId) {
+            return;
+        }
+
+        const state = getPromptState(sessionId, isProcessing);
+        if (!state) {
+            return;
+        }
+
+        state.isProcessing = isProcessing;
+        if (!isProcessing) {
+            state.requestId = '';
+            state.abortController = null;
+        }
+
+        refreshPromptComposerState();
+    }
+
+    async function cancelCurrentPrompt() {
+        const targetSessionId = currentSessionId;
+        const state = getPromptState(targetSessionId, false);
+        if (!state || !state.isProcessing) {
+            return;
+        }
+
+        if (state.requestId) {
+            try {
+                await fetch(`${API_BASE}/prompt/cancel`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_id: state.requestId }),
+                });
+            } catch (_) {
+                // Ignore cancel endpoint errors and continue with local abort.
+            }
+        }
+
+        if (state.abortController) {
+            state.abortController.abort();
+        }
+
+        hideTyping(targetSessionId);
+        addMessage('bot', 'Processamento cancelado por voce.', {
+            noResend: true,
+            sessionId: targetSessionId,
+        });
+        setPromptProcessingState(targetSessionId, false);
+    }
+
+    function trimStorageAndRetry() {
+        // Drop oldest messages from each session until it fits, then retry
+        for (const session of sessions) {
+            if (session.messages.length > 2) {
+                session.messages = session.messages.slice(-2);
+            }
+        }
+        // If still too many sessions, drop all but the last 3
+        if (sessions.length > 3) {
+            sessions = sessions.slice(0, 3);
+        }
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+            localStorage.setItem(ACTIVE_SESSION_KEY, currentSessionId || '');
+        } catch (_) {
+            // Last resort: clear everything
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(ACTIVE_SESSION_KEY);
+        }
+    }
+
+    function saveState() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+            localStorage.setItem(ACTIVE_SESSION_KEY, currentSessionId || '');
+        } catch (e) {
+            if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
+                trimStorageAndRetry();
+            }
+        }
+    }
+
+    function buildWelcomeMessage() {
+        return {
+            id: uid(),
+            sender: 'bot',
+            text: 'Ola. Esta sessao esta pronta para consultas, insercoes, atualizacoes e perguntas sobre seus dados. Se quiser, comece descrevendo o objetivo em linguagem natural.',
+            createdAt: new Date().toISOString()
+        };
+    }
+
+    async function apiRequest(method, path, payload) {
+        const response = await fetch(`${API_BASE}${path}`, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: payload ? JSON.stringify(payload) : undefined
+        });
+
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (error) {
+            data = null;
+        }
+
+        if (!response.ok) {
+            const errorMessage = data?.error || `HTTP ${response.status}`;
+            throw new Error(errorMessage);
+        }
+
+        return data || {};
+    }
+
+    function setApiOutput(title, caption, payload, isError = false) {
+        apiOutputTitle.textContent = title;
+        apiOutputCaption.textContent = caption;
+        apiOutput.textContent = typeof payload === 'string'
+            ? payload
+            : JSON.stringify(payload, null, 2);
+        apiOutputShell.classList.toggle('api-output-error', isError);
+    }
+
+    function parseSchema(schemaText) {
+        const tables = [];
+        const relationships = [];
+        let currentTable = null;
+
+        String(schemaText || '').split(/\r?\n/).forEach((rawLine) => {
+            const line = rawLine.trim();
+            if (!line) {
+                return;
+            }
+
+            if (line.startsWith('TABLE ')) {
+                currentTable = {
+                    name: line.replace(/^TABLE\s+/, '').trim(),
+                    columns: []
+                };
+                tables.push(currentTable);
+                return;
+            }
+
+            if (line.startsWith('COL ') && currentTable) {
+                const parts = line.replace(/^COL\s+/, '').trim().split(/\s+/);
+                const name = parts.shift() || '';
+                const type = parts.shift() || 'TEXT';
+                const flags = parts;
+                currentTable.columns.push({ name, type, flags });
+                return;
+            }
+
+            if (line.startsWith('FK ') && currentTable) {
+                const match = line.match(/^FK\s+(\w+)\s+->\s+(\w+)\.(\w+)$/);
+                if (match) {
+                    relationships.push({
+                        fromTable: currentTable.name,
+                        fromColumn: match[1],
+                        toTable: match[2],
+                        toColumn: match[3]
+                    });
+                }
+            }
+        });
+
+        return { tables, relationships };
+    }
+
+    function escSvg(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function buildErSvg(parsed) {
+        const W = 252;
+        const HEADER_H = 38;
+        const ROW_H = 26;
+        const H_GAP = 80;
+        const V_GAP = 80;
+        const PAD = 44;
+        const MAX_COLS = 5;
+
+        const n = parsed.tables.length;
+        if (n === 0) return '';
+
+        const byName = Object.fromEntries(parsed.tables.map((t) => [t.name, t]));
+        const names = parsed.tables.map((t) => t.name);
+        const tH = (name) => HEADER_H + (byName[name]?.columns.length || 0) * ROW_H;
+
+        // --- Build FK reference graph: refTo[table] = tables it references via FK
+        const refTo = {};
+        names.forEach((name) => (refTo[name] = []));
+        parsed.relationships.forEach((r) => {
+            if (byName[r.fromTable] && byName[r.toTable] && r.fromTable !== r.toTable) {
+                if (!refTo[r.fromTable].includes(r.toTable)) refTo[r.fromTable].push(r.toTable);
+            }
+        });
+
+        // --- Assign topological levels via iterative relaxation
+        //     level[t] = 0 → no outgoing FKs (root/parent tables, drawn at top)
+        //     level[t] = max(level[referenced]) + 1 (dependent tables drawn below)
+        const level = Object.fromEntries(names.map((name) => [name, 0]));
+        for (let iter = 0; iter < names.length + 1; iter++) {
+            let dirty = false;
+            names.forEach((name) => {
+                if (refTo[name].length) {
+                    const nxt = Math.max(...refTo[name].map((r) => level[r])) + 1;
+                    if (nxt > level[name]) { level[name] = nxt; dirty = true; }
+                }
+            });
+            if (!dirty) break;
+        }
+
+        // --- Group by level
+        const byLevel = {};
+        names.forEach((name) => {
+            const lv = level[name];
+            if (!byLevel[lv]) byLevel[lv] = [];
+            byLevel[lv].push(name);
+        });
+        const lvKeys = Object.keys(byLevel).map(Number).sort((a, b) => a - b);
+
+        // --- Build rows (one level may span multiple rows if > MAX_COLS)
+        //     Within each level, sort tables by the average X of their parent tables
+        //     (minimises edge crossings). Level 0 keeps schema order.
+        const rows = [];  // [{ names: string[] }]
+        const pos = {};
+
+        lvKeys.forEach((lv) => {
+            let group = [...byLevel[lv]];
+
+            if (lv > 0) {
+                group.sort((a, b) => {
+                    const cx = (name) => {
+                        const known = refTo[name].filter((r) => pos[r]);
+                        if (!known.length) return 1e9;
+                        return known.reduce((s, r) => s + pos[r].x + W / 2, 0) / known.length;
+                    };
+                    return cx(a) - cx(b);
+                });
+            }
+
+            // Split level into sub-rows if needed, assigning temp positions
+            // (final X comes after we know maxRowW)
+            for (let i = 0; i < group.length; i += MAX_COLS) {
+                rows.push({ names: group.slice(i, i + MAX_COLS) });
+            }
+        });
+
+        // --- Calculate maxRowW and assign positions
+        const maxRowW = Math.max(...rows.map((r) => r.names.length * W + (r.names.length - 1) * H_GAP));
+        const totalW = PAD * 2 + maxRowW;
+
+        // We need two passes: first assign level-0 positions so child sorts work,
+        // then handle the rest. Since we already ordered rows correctly above, just iterate.
+        let curY = PAD;
+        rows.forEach((row) => {
+            const rowW = row.names.length * W + (row.names.length - 1) * H_GAP;
+            const startX = PAD + (maxRowW - rowW) / 2;
+            const rowMaxH = Math.max(...row.names.map(tH));
+            row.names.forEach((name, i) => {
+                pos[name] = { x: startX + i * (W + H_GAP), y: curY, w: W, h: tH(name) };
+            });
+            curY += rowMaxH + V_GAP;
+        });
+
+        const totalH = curY - V_GAP + PAD;
+
+        // --- SVG generation
+        const parts = [];
+
+        // --- Edge routing: map tables to row indices and compute row vertical bands ---
+        const tableRow = {};
+        rows.forEach((row, ri) => row.names.forEach((n) => { tableRow[n] = ri; }));
+
+        // Vertical extent (top / bot) of each row band
+        const band = rows.map((row) => {
+            let top = Infinity, bot = -Infinity;
+            row.names.forEach((n) => {
+                if (!pos[n]) return;
+                top = Math.min(top, pos[n].y);
+                bot = Math.max(bot, pos[n].y + pos[n].h);
+            });
+            return { top: isFinite(top) ? top : 0, bot: isFinite(bot) ? bot : 0 };
+        });
+
+        // Y midpoint of the clear gap between row r and row r+1 (guaranteed no table overlaps)
+        const gapMid = (r) => (r >= 0 && r + 1 < band.length)
+            ? (band[r].bot + band[r + 1].top) / 2
+            : 0;
+
+        // Build a rounded orthogonal polyline through an array of {x, y} waypoints.
+        // Each interior corner is replaced with a quadratic bezier of radius `cr`.
+        const orthoPath = (pts, cr) => {
+            if (pts.length < 2) return '';
+            let d = `M${pts[0].x},${pts[0].y}`;
+            for (let i = 1; i < pts.length; i++) {
+                const a = pts[i - 1], b = pts[i], c = pts[i + 1];
+                if (!c) { d += ` L${b.x},${b.y}`; continue; }
+                const adx = b.x - a.x, ady = b.y - a.y;
+                const bdx = c.x - b.x, bdy = c.y - b.y;
+                const la = Math.hypot(adx, ady), lb = Math.hypot(bdx, bdy);
+                if (la < 1 || lb < 1 || Math.abs(adx * bdy - ady * bdx) < 1) {
+                    d += ` L${b.x},${b.y}`; continue;
+                }
+                const r = Math.min(cr, la / 2, lb / 2);
+                const ax = b.x - (adx / la) * r, ay = b.y - (ady / la) * r;
+                const bx = b.x + (bdx / lb) * r, by = b.y + (bdy / lb) * r;
+                d += ` L${ax},${ay} Q${b.x},${b.y} ${bx},${by}`;
+            }
+            return d;
+        };
+
+        // --- Lane assignment: avoid overlapping edges inside gaps / same-row U-shapes ---
+        const LANE_STEP = 11; // vertical px between parallel lines in the same corridor
+        const STUB = 14;      // horizontal px between table edge and routing network
+
+        // One distinct HSL color per relationship, evenly spread across the hue wheel.
+        // (color is now embedded in each edge object — see edges map below)
+
+        // Collect valid edges with resolved geometry (color spread evenly across hue wheel)
+        const totalRels = parsed.relationships.length;
+        const edges = parsed.relationships
+            .map((rel, ri) => {
+                const fp = pos[rel.fromTable], tp = pos[rel.toTable];
+                if (!fp || !tp || rel.fromTable === rel.toTable) return null;
+                const ft = byName[rel.fromTable], tt = byName[rel.toTable];
+                const fci = ft ? ft.columns.findIndex((c) => c.name === rel.fromColumn) : -1;
+                const tci = tt ? tt.columns.findIndex((c) => c.name === rel.toColumn) : -1;
+                const fr = tableRow[rel.fromTable] ?? 0;
+                const tr = tableRow[rel.toTable] ?? 0;
+                // Exact Y midpoint of the column row — arrow connects to the specific row
+                const fy = fp.y + HEADER_H + (fci >= 0 ? fci * ROW_H + ROW_H / 2 : fp.h / 2);
+                const ty = tp.y + HEADER_H + (tci >= 0 ? tci * ROW_H + ROW_H / 2 : tp.h / 2);
+                // Choose the table edge facing the target to keep the path short
+                const goRight = (tp.x + W / 2) >= (fp.x + W / 2);
+                const sx = goRight ? fp.x + W : fp.x;   // exit edge X
+                const dx = goRight ? tp.x : tp.x + W;   // entry edge X
+                const hue = Math.round((ri / Math.max(totalRels, 1)) * 360);
+                const color = `hsl(${hue},78%,65%)`;
+                return { rel, fp, tp, fr, tr, sx, dx, fy, ty, goRight, color };
+            })
+            .filter(Boolean);
+
+        // Group edge indices by the gap corridors they pass through (and by same-row)
+        const gapBuckets = {};   // gapRowIdx (upper row index) => [edgeIdx, ...]
+        const sameRowBuckets = {}; // rowIdx => [edgeIdx, ...]
+        edges.forEach((e, ei) => {
+            if (e.fr === e.tr) {
+                (sameRowBuckets[e.fr] = sameRowBuckets[e.fr] || []).push(ei);
+            } else {
+                const mn = Math.min(e.fr, e.tr), mx = Math.max(e.fr, e.tr);
+                for (let g = mn; g < mx; g++) {
+                    (gapBuckets[g] = gapBuckets[g] || []).push(ei);
+                }
+            }
+        });
+
+        // Sort buckets left-to-right by average X so lanes are assigned in a readable order
+        const avgX = (ei) => (edges[ei].sx + edges[ei].dx) / 2;
+        Object.values(gapBuckets).forEach((arr) => arr.sort((a, b) => avgX(a) - avgX(b)));
+        Object.values(sameRowBuckets).forEach((arr) => arr.sort((a, b) => avgX(a) - avgX(b)));
+
+        // Build lookup: edgeGapSlot[ei][gapKey] = { slot, total }
+        const edgeGapSlot = edges.map(() => ({}));
+        Object.entries(gapBuckets).forEach(([gStr, arr]) => {
+            const g = Number(gStr);
+            arr.forEach((ei, slot) => { edgeGapSlot[ei][g] = { slot, total: arr.length }; });
+        });
+        const edgeSameRowSlot = edges.map(() => ({ slot: 0, total: 1 }));
+        Object.entries(sameRowBuckets).forEach(([, arr]) => {
+            arr.forEach((ei, slot) => { edgeSameRowSlot[ei] = { slot, total: arr.length }; });
+        });
+
+        // Y inside a gap corridor for a specific edge — spread around the midpoint
+        const gapYFor = (g, ei) => {
+            const s = edgeGapSlot[ei]?.[g] || { slot: 0, total: 1 };
+            return gapMid(g) + (s.slot - (s.total - 1) / 2) * LANE_STEP;
+        };
+
+        // --- Unique stub X offsets per (table, side) group ---
+        // Every edge that exits/enters the same side of the same table gets a unique
+        // vertical stub column, so no two edges share any segment of their path.
+        const srcStubX = new Array(edges.length);
+        const dstStubX = new Array(edges.length);
+        {
+            // Source exits: group by (fromTable, side), sort top-to-bottom by fy
+            const srcGroups = {};
+            edges.forEach((e, ei) => {
+                const key = `${e.rel.fromTable}:${e.goRight}`;
+                (srcGroups[key] = srcGroups[key] || []).push(ei);
+            });
+            Object.values(srcGroups).forEach((arr) => {
+                arr.sort((a, b) => edges[a].fy - edges[b].fy);
+                arr.forEach((ei, i) => {
+                    const e = edges[ei];
+                    const offset = (i - (arr.length - 1) / 2) * LANE_STEP;
+                    srcStubX[ei] = e.goRight
+                        ? e.sx + STUB + offset
+                        : e.sx - STUB - offset;
+                });
+            });
+
+            // Target entries: group by (toTable, side), sort top-to-bottom by ty
+            const dstGroups = {};
+            edges.forEach((e, ei) => {
+                const key = `${e.rel.toTable}:${e.goRight}`;
+                (dstGroups[key] = dstGroups[key] || []).push(ei);
+            });
+            Object.values(dstGroups).forEach((arr) => {
+                arr.sort((a, b) => edges[a].ty - edges[b].ty);
+                arr.forEach((ei, i) => {
+                    const e = edges[ei];
+                    const offset = (i - (arr.length - 1) / 2) * LANE_STEP;
+                    dstStubX[ei] = e.goRight
+                        ? e.dx - STUB - offset
+                        : e.dx + STUB + offset;
+                });
+            });
+        }
+
+        // For multi-gap edges, assign a slot so their bridge columns don't overlap
+        const multiGapSlot = edges.map(() => 0);
+        {
+            const mgRight = [], mgLeft = [];
+            edges.forEach((e, ei) => {
+                if (Math.abs(e.fr - e.tr) > 1) (e.goRight ? mgRight : mgLeft).push(ei);
+            });
+            mgRight.forEach((ei, i) => { multiGapSlot[ei] = i; });
+            mgLeft.forEach((ei, i) => { multiGapSlot[ei] = i; });
+        }
+
+        // Return an X coordinate that is clear of every table in the intermediate rows
+        // (rows strictly between fr and tr). Falls back to the outer margin if needed.
+        const safeVerticalX = (fr, tr, preferX) => {
+            const mn = Math.min(fr, tr), mx = Math.max(fr, tr);
+            const blocked = [];
+            for (let r = mn + 1; r < mx; r++) {
+                rows[r].names.forEach((n) => blocked.push([pos[n].x - 1, pos[n].x + W + 1]));
+            }
+            if (!blocked.length) return preferX;
+            const clear = (x) => !blocked.some(([lo, hi]) => x >= lo && x <= hi);
+            if (clear(preferX)) return preferX;
+            blocked.sort((a, b) => a[0] - b[0]);
+            const cands = [PAD / 2, totalW - PAD / 2];
+            for (let i = 0; i + 1 < blocked.length; i++) {
+                if (blocked[i + 1][0] - blocked[i][1] > 8)
+                    cands.push((blocked[i][1] + blocked[i + 1][0]) / 2);
+            }
+            cands.sort((a, b) => Math.abs(a - preferX) - Math.abs(b - preferX));
+            return cands[0] ?? preferX;
+        };
+
+        // Route and emit each edge using its unique sX / dX stub columns.
+        edges.forEach((e, ei) => {
+            const { fp, tp, fr, tr, sx, dx, fy, ty, goRight } = e;
+            const sX = srcStubX[ei];   // unique exit stub X for this edge
+            const dX = dstStubX[ei];   // unique entry stub X for this edge
+            const pts = [];
+            const numGaps = Math.abs(fr - tr);
+
+            if (fr === tr) {
+                // Same row → U-shape below the row band
+                const { slot } = edgeSameRowSlot[ei];
+                const by = band[fr].bot + V_GAP * 0.18 + slot * LANE_STEP;
+                pts.push(
+                    { x: sx, y: fy },
+                    { x: sX, y: fy },
+                    { x: sX, y: by },
+                    { x: dX, y: by },
+                    { x: dX, y: ty },
+                    { x: dx, y: ty }
+                );
+            } else {
+                const goDown = tr > fr;
+                const srcGapIdx = goDown ? fr : fr - 1;
+                const tgtGapIdx = goDown ? tr - 1 : tr;
+                const srcGapY = gapYFor(srcGapIdx, ei);
+                const tgtGapY = gapYFor(tgtGapIdx, ei);
+
+                if (numGaps === 1) {
+                    // Z-shape: one gap corridor between the two rows
+                    pts.push(
+                        { x: sx, y: fy },
+                        { x: sX, y: fy },
+                        { x: sX, y: srcGapY },
+                        { x: dX, y: srcGapY },
+                        { x: dX, y: ty },
+                        { x: dx, y: ty }
+                    );
+                } else {
+                    // Multi-hop: bridge through intermediate rows at a clear X
+                    const bx0 = safeVerticalX(fr, tr, sX);
+                    const bridgeX = bx0 + multiGapSlot[ei] * (goRight ? -1 : 1) * LANE_STEP;
+                    pts.push(
+                        { x: sx,      y: fy },
+                        { x: sX,      y: fy },
+                        { x: sX,      y: srcGapY },
+                        { x: bridgeX, y: srcGapY },
+                        { x: bridgeX, y: tgtGapY },
+                        { x: dX,      y: tgtGapY },
+                        { x: dX,      y: ty },
+                        { x: dx,      y: ty }
+                    );
+                }
+            }
+
+            parts.push(`<path d="${orthoPath(pts, 7)}" fill="none" stroke="${e.color}" stroke-width="1.4"
+                stroke-dasharray="5,3" opacity="0.7" marker-end="url(#er-arrow-${ei})"/>`);
+        });
+
+        // Table cards
+        parsed.tables.forEach((table) => {
+            const p = pos[table.name];
+            if (!p) return;
+            const { x, y, w, h } = p;
+
+            parts.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6"
+                fill="#09090f" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`);
+            parts.push(`<rect x="${x}" y="${y}" width="${w}" height="${HEADER_H}" rx="6"
+                fill="#100c18" stroke="none"/>`);
+            parts.push(`<rect x="${x}" y="${y + HEADER_H - 6}" width="${w}" height="6"
+                fill="#100c18" stroke="none"/>`);
+            parts.push(`<line x1="${x}" y1="${y + HEADER_H}" x2="${x + w}" y2="${y + HEADER_H}"
+                stroke="rgba(181,109,255,0.2)" stroke-width="1"/>`);
+            parts.push(`<text x="${x + w / 2}" y="${y + HEADER_H / 2 + 1}"
+                text-anchor="middle" dominant-baseline="middle"
+                fill="#f0e4ff" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="700"
+                letter-spacing="0.5">${escSvg(table.name)}</text>`);
+
+            table.columns.forEach((col, ci) => {
+                const ry = y + HEADER_H + ci * ROW_H;
+                const isLast = ci === table.columns.length - 1;
+                const hasPK = col.flags.some((f) => f.toUpperCase() === 'PK');
+                const hasFK = col.flags.some((f) => f.toUpperCase() === 'FK');
+                parts.push(`<rect x="${x}" y="${ry}" width="${w}" height="${isLast ? ROW_H - 1 : ROW_H}"
+                    fill="${ci % 2 === 0 ? '#0d0d15' : '#09090f'}" stroke="none"/>`);
+                if (!isLast) {
+                    parts.push(`<line x1="${x}" y1="${ry + ROW_H}" x2="${x + w}" y2="${ry + ROW_H}"
+                        stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`);
+                }
+                const my = ry + ROW_H / 2;
+                if (hasPK) {
+                    parts.push(`<text x="${x + 9}" y="${my}" dominant-baseline="middle"
+                        fill="#e5c100" font-family="monospace" font-size="9" font-weight="700">PK</text>`);
+                } else if (hasFK) {
+                    parts.push(`<text x="${x + 9}" y="${my}" dominant-baseline="middle"
+                        fill="#ff8f4d" font-family="monospace" font-size="9" font-weight="700">FK</text>`);
+                }
+                parts.push(`<text x="${x + 31}" y="${my}" dominant-baseline="middle"
+                    fill="${hasPK ? '#e8d5f8' : hasFK ? '#ddc9a3' : '#b0a0c5'}"
+                    font-family="IBM Plex Sans, monospace" font-size="11.5">${escSvg(col.name)}</text>`);
+                parts.push(`<text x="${x + w - 9}" y="${my}" text-anchor="end" dominant-baseline="middle"
+                    fill="#4a3b5a" font-family="IBM Plex Sans, monospace" font-size="10.5"
+                    font-style="italic">${escSvg(col.type)}</text>`);
+            });
+        });
+
+        const markerDefs = edges.map((e, ei) =>
+            `<marker id="er-arrow-${ei}" markerWidth="8" markerHeight="6" refX="7.5" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="${e.color}"/></marker>`
+        ).join('');
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}"
+            viewBox="0 0 ${totalW} ${totalH}" style="background:transparent;overflow:visible">
+            <defs>${markerDefs}</defs>
+            ${parts.join('\n            ')}
+        </svg>`;
+    }
+
+    function renderSchemaDiagram(schemaText) {
+        const normalized = String(schemaText || '').trim();
+        if (!normalized) {
+            diagramTableCount.textContent = '0 tabelas';
+            diagramRelationCount.textContent = '0 relacoes';
+            diagramSurface.innerHTML = '<div class="diagram-empty" id="diagram-empty-state">Nenhum schema disponivel para renderizar o diagrama.</div>';
+            return;
+        }
+
+        const parsed = parseSchema(normalized);
+        diagramTableCount.textContent = `${parsed.tables.length} tabela${parsed.tables.length !== 1 ? 's' : ''}`;
+        diagramRelationCount.textContent = `${parsed.relationships.length} relaco${parsed.relationships.length !== 1 ? 'es' : 'ao'}`;
+
+        if (parsed.tables.length === 0) {
+            diagramSurface.innerHTML = '<div class="diagram-empty">Schema nao contém tabelas reconheciveis.</div>';
+            return;
+        }
+
+        diagramSurface.innerHTML = buildErSvg(parsed);
+    }
+
+    function updateModelSuggestions(models) {
+        availableModels = Object.entries(models || {}).flatMap(([provider, names]) =>
+            (names || []).map((modelName) => ({
+                provider,
+                modelName,
+            }))
+        );
+
+        modelComboboxMenu.innerHTML = '';
+
+        if (!availableModels.length) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'combo-empty';
+            emptyState.textContent = 'Nenhum modelo disponivel no momento.';
+            modelComboboxMenu.appendChild(emptyState);
+            setSelectedModel(selectedModelName);
+            return;
+        }
+
+        const modelsByProvider = availableModels.reduce((groups, item) => {
+            if (!groups[item.provider]) {
+                groups[item.provider] = [];
+            }
+            groups[item.provider].push(item.modelName);
+            return groups;
+        }, {});
+
+        Object.entries(modelsByProvider).forEach(([provider, modelNames]) => {
+            const group = document.createElement('div');
+            group.className = 'combo-group';
+
+            const label = document.createElement('div');
+            label.className = 'combo-group-label';
+            label.textContent = provider.replace(/_/g, ' ');
+            group.appendChild(label);
+
+            modelNames.forEach((modelName) => {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'combo-option';
+                option.dataset.model = modelName;
+                option.setAttribute('role', 'option');
+                option.innerHTML = `<span>${modelName}</span>`;
+                option.addEventListener('click', () => {
+                    setSelectedModel(modelName);
+                    setModelComboboxOpen(false);
+                });
+                group.appendChild(option);
+            });
+
+            modelComboboxMenu.appendChild(group);
+        });
+
+        const hasSelectedModel = availableModels.some(({ modelName }) => modelName === selectedModelName);
+        if (!hasSelectedModel) {
+            const currentModelExists = availableModels.some(({ modelName }) => modelName === currentModelValue.textContent);
+            setSelectedModel(currentModelExists ? currentModelValue.textContent : availableModels[0].modelName);
+        } else {
+            setSelectedModel(selectedModelName);
+        }
+    }
+
+    async function loadModelInfo(showOutput = false) {
+        try {
+            const data = await apiRequest('GET', '/model');
+            currentModelValue.textContent = data.current || 'Nenhum modelo selecionado';
+            updateModelSuggestions(data.models || {});
+            if (data.current) {
+                setSelectedModel(data.current);
+            }
+
+            if (showOutput) {
+                setApiOutput(
+                    'Modelos carregados',
+                    'Retorno do endpoint GET /v1/model.',
+                    data
+                );
+            }
+        } catch (error) {
+            currentModelValue.textContent = 'Erro ao carregar';
+            setApiOutput(
+                'Falha ao carregar modelos',
+                'Nao foi possivel consultar GET /v1/model.',
+                error.message,
+                true
+            );
+        }
+    }
+
+    async function listModels() {
+        try {
+            const data = await apiRequest('GET', '/model');
+            currentModelValue.textContent = data.current || 'Nenhum modelo selecionado';
+            updateModelSuggestions(data.models || {});
+            setApiOutput(
+                'Lista de modelos',
+                'Modelos disponiveis por provedor, equivalente ao CLI.',
+                data.models || {}
+            );
+        } catch (error) {
+            setApiOutput('Falha ao listar modelos', 'GET /v1/model retornou erro.', error.message, true);
+        }
+    }
+
+    async function changeModel() {
+        const modelName = selectedModelName.trim();
+        if (!modelName) {
+            setApiOutput('Modelo invalido', 'Selecione um modelo antes de aplicar.', 'Nenhum modelo foi selecionado no combobox.', true);
+            return;
+        }
+
+        try {
+            const data = await apiRequest('PUT', '/model', { model: modelName });
+            currentModelValue.textContent = data.model || modelName;
+            setApiOutput(
+                'Modelo atualizado',
+                'PUT /v1/model executado com sucesso.',
+                data
+            );
+            await loadModelInfo(false);
+        } catch (error) {
+            setApiOutput('Falha ao alterar modelo', 'PUT /v1/model retornou erro.', error.message, true);
+        }
+    }
+
+    async function generateSchema() {
+        schemaStatusValue.textContent = 'Gerando schema...';
+
+        try {
+            const data = await apiRequest('POST', '/schema');
+            latestSchemaText = data.schema || '';
+            schemaStatusValue.textContent = 'Schema gerado com sucesso';
+            setApiOutput(
+                'Schema gerado',
+                'POST /v1/schema executado com sucesso.',
+                data.schema || 'Schema vazio.'
+            );
+        } catch (error) {
+            schemaStatusValue.textContent = 'Falha ao gerar schema';
+            setApiOutput('Falha ao gerar schema', 'POST /v1/schema retornou erro.', error.message, true);
+        }
+    }
+
+    async function viewSchema() {
+        try {
+            const data = await apiRequest('GET', '/schema');
+            latestSchemaText = data.schema || '';
+            schemaStatusValue.textContent = data.schema ? 'Schema carregado' : 'Schema vazio';
+            setApiOutput(
+                'Schema atual',
+                'GET /v1/schema executado com sucesso.',
+                data.schema || 'Schema vazio. Gere o schema primeiro.'
+            );
+        } catch (error) {
+            schemaStatusValue.textContent = 'Falha ao consultar schema';
+            setApiOutput('Falha ao consultar schema', 'GET /v1/schema retornou erro.', error.message, true);
+        }
+    }
+
+    async function openSchemaDiagram() {
+        if (!latestSchemaText) {
+            try {
+                const data = await apiRequest('GET', '/schema');
+                latestSchemaText = data.schema || '';
+                schemaStatusValue.textContent = data.schema ? 'Schema carregado' : 'Schema vazio';
+            } catch (error) {
+                setApiOutput('Falha ao consultar schema', 'GET /v1/schema retornou erro antes de abrir o diagrama.', error.message, true);
+                setDiagramWorkbenchOpen(true);
+                diagramTableCount.textContent = '0 tabelas';
+                diagramRelationCount.textContent = '0 relacoes';
+                diagramSurface.innerHTML = '<div class="diagram-empty">Nao foi possivel obter o schema atual para montar o diagrama.</div>';
+                return;
+            }
+        }
+
+        setDiagramWorkbenchOpen(true);
+        await renderSchemaDiagram(latestSchemaText);
+    }
+
+    function createSession(seedText = '') {
+        const now = new Date().toISOString();
+        const session = {
+            id: uid(),
+            createdAt: now,
+            updatedAt: now,
+            messages: [buildWelcomeMessage()]
+        };
+
+        sessions.unshift(session);
+        currentSessionId = session.id;
+        saveState();
+        renderAll();
+        return session;
+    }
+
+    function loadState() {
+        try {
+            const meta = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+            if (meta.maxRequestSizeKb) maxRequestSizeKb = meta.maxRequestSizeKb;
+            if (meta.contextCurrentMB != null && meta.contextMaxMB != null) {
+                updateContextBar(meta.contextCurrentMB, meta.contextMaxMB);
+            }
+        } catch (_) {}
+
+        try {
+            const storedSessions = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (Array.isArray(storedSessions) && storedSessions.length) {
+                sessions = storedSessions;
+                currentSessionId = localStorage.getItem(ACTIVE_SESSION_KEY) || storedSessions[0].id;
+            }
+        } catch (error) {
+            sessions = [];
+        }
+
+        if (!sessions.length) {
+            createSession();
+            return;
+        }
+
+        if (!sessions.some((session) => session.id === currentSessionId)) {
+            currentSessionId = sessions[0].id;
+        }
+
+        renderAll();
+    }
+
+    function getCurrentSession() {
+        return sessions.find((session) => session.id === currentSessionId) || null;
+    }
+
+    function getSessionById(sessionId) {
+        return sessions.find((session) => session.id === sessionId) || null;
+    }
+
+    function setCurrentSession(id) {
+        currentSessionId = id;
+        saveState();
+        renderAll();
+        refreshPromptComposerState();
+    }
+
+    function addMessage(sender, text, options = {}) {
+        const targetSessionId = options.sessionId || currentSessionId;
+        const session = getSessionById(targetSessionId);
+        if (!session) {
+            return null;
+        }
+
+        const message = {
+            id: uid(),
+            sender,
+            text,
+            isError: Boolean(options.isError),
+            noResend: Boolean(options.noResend),
+            originalPrompt: options.originalPrompt || '',
+            sql: options.sql || '',
+            createdAt: new Date().toISOString()
+        };
+
+        session.messages.push(message);
+
+        session.updatedAt = new Date().toISOString();
+
+        sessions.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        saveState();
+        renderChrome();
+
+        if (targetSessionId === currentSessionId) {
+            appendMessageToChat(message, message.id, options);
+        }
+
+        return message.id;
+    }
+
+    function renderSessions() {
+        sessionList.innerHTML = '';
+
+        sessions.forEach((session) => {
+            const preview = getSessionPreview(session);
+            const button = document.createElement('button');
+            button.className = `session-btn ${session.id === currentSessionId ? 'active' : ''}`;
+            button.innerHTML = `
+                <strong>${preview}</strong>
+                <small>${formatDate(session.updatedAt || session.createdAt)}</small>
+            `;
+            button.addEventListener('click', () => setCurrentSession(session.id));
+            sessionList.appendChild(button);
+        });
+    }
+
+    function renderHeader() {
+        const session = getCurrentSession();
+        if (!session) {
+            return;
+        }
+
+        chatTitle.textContent = getSessionPreview(session);
+        chatSubtitle.textContent = 'Sessao ativa pronta para novas perguntas.';
+        sessionTimestamp.textContent = formatDate(session.updatedAt || session.createdAt);
+
+        sessionCount.textContent = sessions.length;
+        messageCount.textContent = sessions.reduce((total, current) => total + current.messages.length, 0);
+    }
+
+    function appendResendButton(msgDiv, message) {
+        if (message.isError && message.originalPrompt && !message.noResend) {
+            const resendBtn = document.createElement('button');
+            resendBtn.className = 'resend-btn';
+            resendBtn.innerHTML = '<i class="fas fa-rotate-right"></i> Tentar novamente';
+            resendBtn.onclick = () => processMessage(message.originalPrompt, { skipUserEcho: false });
+            msgDiv.appendChild(resendBtn);
+        }
+    }
+
+    function showSqlModal(sql) {
+        const overlay = document.createElement('div');
+        overlay.className = 'sql-modal-overlay';
+        const modal = document.createElement('div');
+        modal.className = 'sql-modal';
+        modal.innerHTML = `
+            <div class="sql-modal-header">
+                <span class="sql-modal-title"><i class="fas fa-code"></i> SQL gerado</span>
+                <button class="sql-modal-close"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="sql-modal-body"><pre></pre></div>
+        `;
+        modal.querySelector('pre').textContent = formatSqlForDisplay(sql);
+        overlay.appendChild(modal);
+        let closing = false;
+        const close = () => {
+            if (closing) {
+                return;
+            }
+            closing = true;
+            overlay.classList.remove('is-open');
+            document.removeEventListener('keydown', onKey);
+            setTimeout(() => {
+                overlay.remove();
+            }, 180);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') close(); };
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        modal.querySelector('.sql-modal-close').addEventListener('click', close);
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => {
+            overlay.classList.add('is-open');
+        });
+    }
+
+    function formatSqlForDisplay(sql) {
+        const raw = String(sql || '').trim();
+        if (!raw) {
+            return '';
+        }
+
+        if (window.sqlFormatter && typeof window.sqlFormatter.format === 'function') {
+            try {
+                return window.sqlFormatter.format(raw, {
+                    language: 'sqlite',
+                    keywordCase: 'upper',
+                    tabWidth: 2,
+                    linesBetweenQueries: 1,
+                });
+            } catch (_) {
+                // Fall back to raw SQL if formatter fails for any reason.
+            }
+        }
+
+        return raw.replace(/;\s*/g, ';\n').trim();
+    }
+
+    function appendSqlButton(msgDiv, message) {
+        if (message.sql) {
+            const btn = document.createElement('button');
+            btn.className = 'sql-btn';
+            btn.innerHTML = '<i class="fas fa-code"></i> Ver SQL';
+            btn.onclick = () => showSqlModal(message.sql);
+            msgDiv.appendChild(btn);
+        }
+    }
+
+    function renderBotMessageContent(msgDiv, message) {
+        msgDiv.classList.remove('bot-typing-text');
+        msgDiv.innerHTML = marked.parse(message.text || '');
+        appendResendButton(msgDiv, message);
+    }
+
+    function populateMessageElement(wrapper, message, animatedMessageId = null, options = {}) {
+        wrapper.className = 'message-wrapper';
+        wrapper.style.alignSelf = message.sender === 'user' ? 'flex-end' : 'flex-start';
+
+        if (animatedMessageId && message.id === animatedMessageId) {
+            wrapper.classList.add(message.sender === 'user' ? 'message-enter-user' : 'message-enter-bot');
+        }
+
+        const meta = document.createElement('div');
+        meta.className = 'message-meta';
+        meta.innerHTML = `
+            <span class="message-avatar ${message.sender === 'user' ? '' : 'bot-avatar'}">${message.sender === 'user' ? '<i class="fas fa-user"></i>' : '<img src="./icon.png" alt="PapoQL">'}</span>
+            <span>${message.sender === 'user' ? 'Voce' : 'PapoQL'}</span>
+            <span>${formatTime(message.createdAt)}</span>
+        `;
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${message.sender} ${message.isError ? 'error' : ''}`;
+
+        if (message.sender === 'bot') {
+            if (!options.deferContent) {
+                renderBotMessageContent(msgDiv, message);
+            }
+        } else {
+            if (!options.deferContent) {
+                msgDiv.textContent = message.text;
+            }
+        }
+
+        wrapper.innerHTML = '';
+        wrapper.appendChild(meta);
+        wrapper.appendChild(msgDiv);
+
+        if (message.sender === 'bot' && message.sql) {
+            const actionsRow = document.createElement('div');
+            actionsRow.className = 'message-actions-row';
+            appendSqlButton(actionsRow, message);
+            wrapper.appendChild(actionsRow);
+        }
+    }
+
+    function createMessageElement(message, animatedMessageId = null) {
+        const wrapper = document.createElement('div');
+        populateMessageElement(wrapper, message, animatedMessageId);
+        return wrapper;
+    }
+
+    function stopBotResponseAnimation() {
+        if (botResponseAnimator && botResponseAnimator.timerId) {
+            clearTimeout(botResponseAnimator.timerId);
+        }
+        botResponseAnimator = null;
+    }
+
+    function stopUserMessageAnimation() {
+        if (userMessageAnimator && userMessageAnimator.timerId) {
+            clearTimeout(userMessageAnimator.timerId);
+        }
+        userMessageAnimator = null;
+    }
+
+    function animateUserMessage(wrapper, message, animatedMessageId = null) {
+        stopUserMessageAnimation();
+        populateMessageElement(wrapper, message, animatedMessageId, { deferContent: true });
+
+        const msgDiv = wrapper.querySelector('.message');
+        const rawText = String(message.text || '');
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        msgDiv.classList.add('user-sending-text');
+
+        if (!rawText || prefersReducedMotion) {
+            msgDiv.textContent = rawText;
+            msgDiv.classList.remove('user-sending-text');
+            requestAnimationFrame(() => scrollChatToBottom(true));
+            return;
+        }
+
+        let index = 0;
+        const chunkSize = rawText.length > 180 ? 6 : rawText.length > 80 ? 4 : 2;
+
+        userMessageAnimator = { timerId: null };
+
+        const tick = () => {
+            index = Math.min(rawText.length, index + chunkSize);
+            const caret = index < rawText.length ? '|' : '';
+            msgDiv.textContent = rawText.slice(0, index) + caret;
+            scrollChatToBottom(false);
+
+            if (index < rawText.length) {
+                userMessageAnimator.timerId = setTimeout(tick, 28);
+                return;
+            }
+
+            msgDiv.textContent = rawText;
+            msgDiv.classList.remove('user-sending-text');
+            userMessageAnimator = null;
+            requestAnimationFrame(() => scrollChatToBottom(true));
+        };
+
+        tick();
+    }
+
+    function animateBotMessage(wrapper, message, animatedMessageId = null) {
+        stopBotResponseAnimation();
+        populateMessageElement(wrapper, message, animatedMessageId, { deferContent: true });
+
+        const msgDiv = wrapper.querySelector('.message');
+        const rawText = String(message.text || '');
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        msgDiv.classList.add('bot-typing-text');
+
+        if (!rawText || prefersReducedMotion) {
+            renderBotMessageContent(msgDiv, message);
+            requestAnimationFrame(() => scrollChatToBottom(true));
+            return;
+        }
+
+        let index = 0;
+        const chunkSize = rawText.length > 600 ? 8 : rawText.length > 240 ? 5 : 3;
+
+        botResponseAnimator = { timerId: null };
+
+        const tick = () => {
+            index = Math.min(rawText.length, index + chunkSize);
+            msgDiv.textContent = rawText.slice(0, index);
+            scrollChatToBottom(false);
+
+            if (index < rawText.length) {
+                botResponseAnimator.timerId = setTimeout(tick, 28);
+                return;
+            }
+
+            renderBotMessageContent(msgDiv, message);
+            botResponseAnimator = null;
+            requestAnimationFrame(() => scrollChatToBottom(true));
+        };
+
+        tick();
+    }
+
+    function renderMessages(keepScrollBottom = false, animatedMessageId = null) {
+        const session = getCurrentSession();
+        const promptState = getPromptState(currentSessionId, false);
+        stopBotResponseAnimation();
+        stopUserMessageAnimation();
+        chatBox.innerHTML = '';
+
+        if (!session || !session.messages.length) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-state';
+            empty.textContent = 'Nenhuma mensagem nesta sessao ainda.';
+            chatBox.appendChild(empty);
+            return;
+        }
+
+        session.messages.forEach((message) => {
+            chatBox.appendChild(createMessageElement(message, animatedMessageId));
+        });
+
+        if (promptState && promptState.isProcessing && promptState.typingNode) {
+            chatBox.appendChild(promptState.typingNode);
+            flushTypingThoughtQueue(currentSessionId);
+        }
+
+        if (keepScrollBottom) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } else {
+            requestAnimationFrame(() => {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+    }
+
+    function scrollChatToBottom(smooth = true) {
+        chatBox.scrollTo({
+            top: chatBox.scrollHeight,
+            behavior: smooth ? 'smooth' : 'auto'
+        });
+    }
+
+    function renderChrome() {
+        renderSessions();
+        renderHeader();
+    }
+
+    function appendMessageToChat(message, animatedMessageId = null, options = {}) {
+        const targetSessionId = options.sessionId || currentSessionId;
+        const promptState = getPromptState(targetSessionId, false);
+        const typingNode = promptState ? promptState.typingNode : null;
+        const emptyState = chatBox.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        if (options.reuseTypingNode && typingNode && typingNode.parentElement === chatBox) {
+            const wrapper = typingNode;
+            if (promptState) {
+                promptState.typingNode = null;
+            }
+            if (options.typeResponse && message.sender === 'bot' && !message.isError) {
+                animateBotMessage(wrapper, message, animatedMessageId);
+                return;
+            }
+            populateMessageElement(wrapper, message, animatedMessageId);
+            requestAnimationFrame(() => scrollChatToBottom(true));
+            return;
+        }
+
+        if (typingNode && typingNode.parentElement === chatBox) {
+            typingNode.remove();
+        }
+
+        if (options.typeResponse && message.sender === 'bot' && !message.isError) {
+            const wrapper = document.createElement('div');
+            chatBox.appendChild(wrapper);
+            animateBotMessage(wrapper, message, animatedMessageId);
+            return;
+        }
+
+        chatBox.appendChild(createMessageElement(message, animatedMessageId));
+
+        if (typingNode) {
+            chatBox.appendChild(typingNode);
+        }
+
+        requestAnimationFrame(() => scrollChatToBottom(true));
+    }
+
+    function renderAll(keepScrollBottom = false, animatedMessageId = null) {
+        renderChrome();
+        renderMessages(keepScrollBottom, animatedMessageId);
+        refreshPromptComposerState();
+    }
+
+    function buildTypingNode() {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper';
+        wrapper.style.alignSelf = 'flex-start';
+        wrapper.innerHTML = `
+            <div class="message-meta">
+                <span class="message-avatar bot-avatar"><img src="./icon.png" alt="PapoQL"></span>
+                <span>PapoQL</span>
+                <span>digitando</span>
+            </div>
+            <div class="message bot typing-message">
+                <div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                <div class="typing-thoughts"></div>
+            </div>
+        `;
+        return wrapper;
+    }
+
+    function showTyping(sessionId) {
+        const state = getPromptState(sessionId, true);
+        if (!state) {
+            return;
+        }
+
+        state.typingNode = buildTypingNode();
+        state.typingNode.classList.add('message-enter-bot');
+        state.typingThoughtQueue = [];
+        state.typingThoughtAnimating = false;
+
+        if (sessionId === currentSessionId) {
+            chatBox.appendChild(state.typingNode);
+            requestAnimationFrame(() => scrollChatToBottom(false));
+        }
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function typeThoughtText(sessionId, thoughtEl, text) {
+        const state = getPromptState(sessionId, false);
+        if (!state) {
+            return false;
+        }
+
+        thoughtEl.classList.add('is-typing');
+        thoughtEl.textContent = '';
+
+        for (const ch of text) {
+            if (!state.typingNode) {
+                return false;
+            }
+
+            thoughtEl.textContent += ch;
+            if (sessionId === currentSessionId && thoughtEl.isConnected) {
+                scrollChatToBottom(false);
+            }
+            await sleep(24);
+        }
+
+        thoughtEl.classList.remove('is-typing');
+        return true;
+    }
+
+    async function flushTypingThoughtQueue(sessionId) {
+        const state = getPromptState(sessionId, false);
+        if (!state || state.typingThoughtAnimating) {
+            return;
+        }
+
+        if (!state.typingNode || !state.typingNode.isConnected) {
+            return;
+        }
+
+        state.typingThoughtAnimating = true;
+        try {
+            while (state.typingThoughtQueue.length > 0) {
+                if (!state.typingNode) {
+                    state.typingThoughtQueue = [];
+                    break;
+                }
+
+                const thoughts = state.typingNode.querySelector('.typing-thoughts');
+                if (!thoughts) {
+                    state.typingThoughtQueue = [];
+                    break;
+                }
+
+                const message = state.typingThoughtQueue[0];
+                const thought = document.createElement('span');
+                thought.className = 'typing-thought';
+                thoughts.appendChild(thought);
+                const finished = await typeThoughtText(sessionId, thought, message);
+                if (!finished) {
+                    thought.remove();
+                    break;
+                }
+                state.typingThoughtQueue.shift();
+            }
+        } finally {
+            state.typingThoughtAnimating = false;
+        }
+    }
+
+    function updateTypingThought(sessionId, message) {
+        const state = getPromptState(sessionId, true);
+        if (!state) {
+            return;
+        }
+        const cleanMessage = String(message || '').trim();
+        if (!cleanMessage) {
+            return;
+        }
+
+        state.typingThoughtQueue.push(cleanMessage);
+        flushTypingThoughtQueue(sessionId);
+    }
+
+    function hideTyping(sessionId) {
+        const state = getPromptState(sessionId, false);
+        if (!state) {
+            return;
+        }
+
+        state.typingThoughtQueue = [];
+        state.typingThoughtAnimating = false;
+        if (state.typingNode && state.typingNode.parentElement) {
+            state.typingNode.remove();
+        }
+        state.typingNode = null;
+    }
+
+    function updateContextBar(currentMB, maxMB) {
+        const wrap = document.getElementById('context-bar-wrap');
+        const fill = document.getElementById('context-bar-fill');
+        const label = document.getElementById('context-bar-label');
+        if (!wrap || !fill || !label) return;
+
+        const pct = maxMB > 0 ? Math.min((currentMB / maxMB) * 100, 100) : 0;
+        fill.style.width = pct.toFixed(2) + '%';
+        fill.className = 'context-bar-fill';
+        if (pct >= 90) fill.classList.add('ctx-danger');
+        else if (pct >= 50) fill.classList.add('ctx-warn');
+
+        const fmt = v => v < 1 ? (v * 1024).toFixed(1) + ' KB' : v.toFixed(2) + ' MB';
+        label.textContent = fmt(currentMB) + ' / ' + fmt(maxMB);
+
+        try {
+            const meta = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+            meta.contextCurrentMB = currentMB;
+            meta.contextMaxMB = maxMB;
+            localStorage.setItem(META_KEY, JSON.stringify(meta));
+        } catch (_) {}
+    }
+
+    async function processMessage(text, options = {}) {
+        const promptText = String(text || '').trim();
+        if (!promptText) {
+            return;
+        }
+
+        const originSessionId = currentSessionId;
+        if (isSessionProcessing(originSessionId)) {
+            return;
+        }
+
+        const byteSize = new TextEncoder().encode(promptText).length;
+        if (byteSize > maxRequestSizeKb * 1024) {
+            if (!options.skipUserEcho) {
+                addMessage('user', promptText);
+            }
+            addMessage('bot', `Sua mensagem e muito longa. O limite e de ${maxRequestSizeKb} KB por requisicao. Tente encurtar o texto antes de enviar.`, {
+                isError: true,
+                noResend: true
+            });
+            return;
+        }
+
+        if (!getCurrentSession()) {
+            createSession(promptText);
+        }
+
+        if (!options.skipUserEcho) {
+            addMessage('user', promptText, { sessionId: originSessionId });
+            if (currentSessionId === originSessionId) {
+                scrollChatToBottom(false);
+                requestAnimationFrame(() => scrollChatToBottom(false));
+            }
+        }
+
+        const promptState = getPromptState(originSessionId, true);
+        setPromptProcessingState(originSessionId, true);
+        promptState.requestId = '';
+        promptState.abortController = new AbortController();
+
+        try {
+            const responsePromise = fetch(`${API_BASE}/prompt/stream`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                signal: promptState.abortController.signal,
+                body: JSON.stringify({ prompt: promptText })
+            });
+
+            await sleep(560);
+            showTyping(originSessionId);
+
+            const response = await responsePromise;
+
+            if (!response.ok) {
+                let errMsg = `Erro HTTP ${response.status}.`;
+                let noResend = false;
+                try {
+                    const errData = await response.json();
+                    if (errData && errData.error) {
+                        if (errData.error === 'request body too large') {
+                            errMsg = `Sua mensagem e muito longa. O limite e de ${maxRequestSizeKb} KB por requisicao. Tente encurtar o texto antes de enviar.`;
+                            noResend = true;
+                        } else {
+                            errMsg = errData.error;
+                        }
+                    }
+                } catch (_) {}
+                hideTyping(originSessionId);
+                addMessage('bot', errMsg, {
+                    sessionId: originSessionId,
+                    reuseTypingNode: false,
+                    isError: true,
+                    originalPrompt: promptText,
+                    noResend,
+                });
+                return;
+            }
+
+            const reader = response.body?.getReader();
+            if (!reader) {
+                throw new Error('stream body unavailable');
+            }
+
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let finalData = null;
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    break;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+
+                let splitIndex;
+                while ((splitIndex = buffer.indexOf('\n\n')) !== -1) {
+                    const chunk = buffer.slice(0, splitIndex).trim();
+                    buffer = buffer.slice(splitIndex + 2);
+
+                    if (!chunk.startsWith('data:')) {
+                        continue;
+                    }
+
+                    const raw = chunk.replace(/^data:\s*/, '');
+                    let payload;
+                    try {
+                        payload = JSON.parse(raw);
+                    } catch (_) {
+                        continue;
+                    }
+
+                    if (payload.event === 'thought') {
+                        updateTypingThought(originSessionId, payload.data?.message || 'Processando');
+                    }
+
+                    if (payload.event === 'status' && payload.data?.request_id) {
+                        promptState.requestId = payload.data.request_id;
+                    }
+
+                    if (payload.event === 'canceled') {
+                        throw new Error('prompt canceled');
+                    }
+
+                    if (payload.event === 'error') {
+                        throw new Error(payload.data?.error || 'erro desconhecido no stream');
+                    }
+
+                    if (payload.event === 'result') {
+                        finalData = payload.data || null;
+                    }
+                }
+            }
+
+            if (!finalData) {
+                throw new Error('stream finalizou sem resultado');
+            }
+
+            const shouldRenderTypingInCurrentSession = currentSessionId === originSessionId;
+            if (!shouldRenderTypingInCurrentSession) {
+                hideTyping(originSessionId);
+            }
+
+            addMessage('bot', finalData.response || 'Sem resposta.', {
+                sessionId: originSessionId,
+                reuseTypingNode: shouldRenderTypingInCurrentSession,
+                typeResponse: shouldRenderTypingInCurrentSession,
+                sql: finalData.sql || ''
+            });
+            if (finalData.max_context_usage != null && finalData.current_context_usage != null) {
+                updateContextBar(finalData.current_context_usage, finalData.max_context_usage);
+            }
+            if (finalData.max_request_size_kb != null) {
+                maxRequestSizeKb = finalData.max_request_size_kb;
+                try {
+                    const meta = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+                    meta.maxRequestSizeKb = maxRequestSizeKb;
+                    localStorage.setItem(META_KEY, JSON.stringify(meta));
+                } catch (_) {}
+            }
+        } catch (error) {
+            if (error?.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('canceled')) {
+                hideTyping(originSessionId);
+                return;
+            }
+            hideTyping(originSessionId);
+            addMessage('bot', 'Erro de conexao com o servidor local. Verifique se a API esta em execucao em localhost:8801.', {
+                reuseTypingNode: true,
+                isError: true,
+                originalPrompt: promptText,
+                sessionId: originSessionId,
+            });
+        } finally {
+            setPromptProcessingState(originSessionId, false);
+        }
+    }
+
+    function handleSend() {
+        const text = userInput.value.trim();
+        if (!text) {
+            return;
+        }
+
+        userInput.value = '';
+        processMessage(text);
+    }
+
+    async function clearContext() {
+        try {
+            await fetch(`${API_BASE}/context`, { method: 'DELETE', credentials: 'include' });
+        } catch (_) {}
+        updateContextBar(0, JSON.parse(localStorage.getItem(META_KEY) || '{}').contextMaxMB || 0);
+        try {
+            const meta = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+            meta.contextCurrentMB = 0;
+            localStorage.setItem(META_KEY, JSON.stringify(meta));
+        } catch (_) {}
+        addMessage('bot', 'Contexto da conversa apagado. As proximas respostas nao terao memoria das mensagens anteriores.', {});
+    }
+
+    newChatBtn.addEventListener('click', () => createSession());
+    document.getElementById('clear-context-btn').addEventListener('click', clearContext);
+    sendBtn.addEventListener('click', () => {
+        if (isSessionProcessing(currentSessionId)) {
+            cancelCurrentPrompt();
+            return;
+        }
+        handleSend();
+    });
+    refreshModelBtn.addEventListener('click', () => loadModelInfo(true));
+    listModelsBtn.addEventListener('click', listModels);
+    saveModelBtn.addEventListener('click', changeModel);
+    generateSchemaBtn.addEventListener('click', generateSchema);
+    viewSchemaBtn.addEventListener('click', viewSchema);
+    viewDiagramBtn.addEventListener('click', openSchemaDiagram);
+    openDiagramTopbarBtn.addEventListener('click', openSchemaDiagram);
+    openDocsTopbarBtn.addEventListener('click', () => setDocsWorkbenchOpen(true));
+    docsEndpointButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            renderDocsEndpoint(button.dataset.endpointId);
+        });
+    });
+    modelComboboxTrigger.addEventListener('click', () => {
+        setModelComboboxOpen(!modelCombobox.classList.contains('is-open'));
+    });
+    modelComboboxMenu.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            setModelComboboxOpen(false);
+            modelComboboxTrigger.focus();
+        }
+    });
+    document.addEventListener('click', (event) => {
+        if (!modelCombobox.contains(event.target)) {
+            setModelComboboxOpen(false);
+        }
+    });
+    userInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            if (isSessionProcessing(currentSessionId)) {
+                return;
+            }
+            handleSend();
+        }
+    });
+    toggleSidebarBtn.addEventListener('click', () => setApiWorkbenchOpen(true));
+    closeApiWorkbenchBtn.addEventListener('click', () => setApiWorkbenchOpen(false));
+    closeDiagramWorkbenchBtn.addEventListener('click', () => setDiagramWorkbenchOpen(false));
+    closeDocsWorkbenchBtn.addEventListener('click', () => setDocsWorkbenchOpen(false));
+    apiWorkbench.addEventListener('click', (event) => {
+        if (event.target === apiWorkbench) {
+            setApiWorkbenchOpen(false);
+        }
+    });
+    diagramWorkbench.addEventListener('click', (event) => {
+        if (event.target === diagramWorkbench) {
+            setDiagramWorkbenchOpen(false);
+        }
+    });
+    docsWorkbench.addEventListener('click', (event) => {
+        if (event.target === docsWorkbench) {
+            setDocsWorkbenchOpen(false);
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && docsWorkbenchOpen) {
+            setDocsWorkbenchOpen(false);
+            return;
+        }
+        if (event.key === 'Escape' && diagramWorkbenchOpen) {
+            setDiagramWorkbenchOpen(false);
+            return;
+        }
+        if (event.key === 'Escape' && modelCombobox.classList.contains('is-open')) {
+            setModelComboboxOpen(false);
+            return;
+        }
+        if (event.key === 'Escape' && apiWorkbenchOpen) {
+            setApiWorkbenchOpen(false);
+        }
+    });
+
+    loadState();
+    loadModelInfo(false);
+    renderDocsEndpoint('prompt_sync');
+    userInput.focus();
+</script>
+</body>
+</html>
