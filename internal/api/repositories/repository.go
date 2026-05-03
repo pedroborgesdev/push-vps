@@ -7,8 +7,6 @@ import (
 	"os"
 
 	"github.com/pedroborgesdev/papoql/internal/api/database"
-
-	_ "modernc.org/sqlite"
 )
 
 type Repository struct {
