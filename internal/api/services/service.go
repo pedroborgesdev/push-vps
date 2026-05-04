@@ -148,15 +148,52 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, mode string, h
 	}
 
 	if responseMode == "query" {
-		emit("sql_generation", "generating final SQL")
+		emit("action", "processing action_1 (QUERY)")
+		enhancedPrompt, _, err := s.getEnhancedPromptFromAI(user_prompt, "QUERY", s.schema)
+		if err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+		}
+		logger.AI("AI Enhanced Prompt (action_1)", []logger.ParamPair{
+			{Key: "enhanced", Value: enhancedPrompt},
+			{Key: "needSql", Value: true},
+		})
+
+		emit("planning", "planning SQL for action_1")
 		if err := checkCanceled(); err != nil {
 			return "", "", responseMode, currentContextMB, maxContextMB, err
 		}
 
-		sqlSteps, err := s.getFinalSQLFromAI(s.rules, user_prompt, s.schema, nil, nil, nil, "")
+		planning, err := s.getPlanningFromAI(enhancedPrompt)
 		if err != nil {
 			return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
 		}
+		logger.AI("AI Planning (action_1)", []logger.ParamPair{
+			{Key: "tables", Value: strings.Join(planning.Tables, ", ")},
+			{Key: "columns", Value: strings.Join(planning.Columns, ", ")},
+			{Key: "joins", Value: strings.Join(planning.Joins, ", ")},
+		})
+
+		emit("inspection", "inspecting data for action_1")
+		if err := checkCanceled(); err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, err
+		}
+		inspectResult := s.getInspectionFromAI(planning.Tables, planning.Columns, planning.Joins)
+
+		emit("sql_generation", "generating final SQL for action_1")
+		if err := checkCanceled(); err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, err
+		}
+
+		sqlSteps, err := s.getFinalSQLFromAI(s.rules, enhancedPrompt, s.schema, planning.Tables, planning.Columns, planning.Joins, inspectResult)
+		if err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+		}
+
+		sqlStepParams := make([]logger.ParamPair, len(sqlSteps))
+		for j, sql := range sqlSteps {
+			sqlStepParams[j] = logger.ParamPair{Key: fmt.Sprintf("step_%d", j+1), Value: sql}
+		}
+		logger.AI("AI SQL Steps (action_1)", sqlStepParams)
 
 		sqlOutput := strings.TrimSpace(strings.Join(sqlSteps, "\n"))
 		if sqlOutput == "" {

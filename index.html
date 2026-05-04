@@ -1770,6 +1770,89 @@
             box-shadow: 0 8px 24px rgba(255, 143, 77, 0.22);
         }
 
+        .mode-toggle-btn i {
+            margin-right: 6px;
+        }
+
+        .mode-selectbox {
+            display: none;
+            position: relative;
+            width: 100%;
+        }
+
+        .mode-select-trigger {
+            width: 100%;
+            min-height: 36px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .mode-select-value {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .mode-select-menu {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: calc(100% + 8px);
+            display: grid;
+            gap: 6px;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(181, 109, 255, 0.2);
+            background: linear-gradient(180deg, rgba(12, 12, 15, 0.98), rgba(6, 6, 8, 0.98));
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(6px);
+            transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+            z-index: 18;
+        }
+
+        .mode-selectbox.is-open .mode-select-menu {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .mode-select-option {
+            width: 100%;
+            min-height: 34px;
+            padding: 8px 10px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--muted);
+            text-align: left;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .mode-select-option.is-selected {
+            color: #180b21;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-color: transparent;
+        }
+
         .composer-top {
             display: flex;
             gap: 14px;
@@ -2438,13 +2521,17 @@
             }
 
             .mode-toggle {
-                width: 100%;
+                display: none;
             }
 
             .mode-toggle-btn {
                 flex: 1;
                 min-height: 36px;
                 font-size: 0.76rem;
+            }
+
+            .mode-selectbox {
+                display: block;
             }
 
             .main-panel {
@@ -2998,8 +3085,18 @@
             <footer class="composer">
                 <div class="composer-shell">
                     <div class="mode-toggle" role="group" aria-label="Modo do prompt">
-                        <button class="mode-toggle-btn active" id="mode-conversation-btn" type="button" aria-pressed="true">Conversation</button>
-                        <button class="mode-toggle-btn" id="mode-query-btn" type="button" aria-pressed="false">Query</button>
+                        <button class="mode-toggle-btn active" id="mode-conversation-btn" type="button" aria-pressed="true"><i class="fas fa-comments"></i>Conversation</button>
+                        <button class="mode-toggle-btn" id="mode-query-btn" type="button" aria-pressed="false"><i class="fas fa-database"></i>Query</button>
+                    </div>
+                    <div class="mode-selectbox" id="mode-selectbox">
+                        <button class="mode-select-trigger" id="mode-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="mode-select-value" id="mode-select-value"><i class="fas fa-comments"></i>Conversation</span>
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <div class="mode-select-menu" id="mode-select-menu" role="listbox" aria-label="Modo do prompt">
+                            <button class="mode-select-option is-selected" type="button" data-mode="conversation" role="option" aria-selected="true"><i class="fas fa-comments"></i>Conversation</button>
+                            <button class="mode-select-option" type="button" data-mode="query" role="option" aria-selected="false"><i class="fas fa-database"></i>Query</button>
+                        </div>
                     </div>
                     <div class="composer-top">
                         <textarea id="user-input" rows="1" placeholder="Descreva a consulta, a alteracao de dados ou a pergunta que voce quer resolver..."></textarea>
@@ -3038,6 +3135,10 @@
     const sendBtn = document.getElementById('send-btn');
     const modeConversationBtn = document.getElementById('mode-conversation-btn');
     const modeQueryBtn = document.getElementById('mode-query-btn');
+    const modeSelectBox = document.getElementById('mode-selectbox');
+    const modeSelectTrigger = document.getElementById('mode-select-trigger');
+    const modeSelectValue = document.getElementById('mode-select-value');
+    const modeSelectMenu = document.getElementById('mode-select-menu');
     const newChatBtn = document.getElementById('new-chat-btn');
     const mobileNewChatBtn = document.getElementById('mobile-new-chat-btn');
     const sessionList = document.getElementById('session-list');
@@ -3271,6 +3372,21 @@
         });
     }
 
+    function promptModeLabelHTML(mode) {
+        if (mode === 'query') {
+            return '<i class="fas fa-database"></i>Query';
+        }
+        return '<i class="fas fa-comments"></i>Conversation';
+    }
+
+    function setModeSelectOpen(open) {
+        if (!modeSelectBox || !modeSelectTrigger) {
+            return;
+        }
+        modeSelectBox.classList.toggle('is-open', Boolean(open));
+        modeSelectTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
     function setPromptMode(mode) {
         selectedPromptMode = String(mode || '').toLowerCase() === 'query' ? 'query' : 'conversation';
 
@@ -3283,6 +3399,20 @@
             modeQueryBtn.classList.toggle('active', !isConversation);
             modeQueryBtn.setAttribute('aria-pressed', !isConversation ? 'true' : 'false');
         }
+
+        if (modeSelectValue) {
+            modeSelectValue.innerHTML = promptModeLabelHTML(selectedPromptMode);
+        }
+
+        if (modeSelectMenu) {
+            Array.from(modeSelectMenu.querySelectorAll('.mode-select-option')).forEach((option) => {
+                const isSelected = option.dataset.mode === selectedPromptMode;
+                option.classList.toggle('is-selected', isSelected);
+                option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            });
+        }
+
+        setModeSelectOpen(false);
     }
 
     function getPromptState(sessionId, createIfMissing = false) {
@@ -4989,6 +5119,19 @@
     if (modeQueryBtn) {
         modeQueryBtn.addEventListener('click', () => setPromptMode('query'));
     }
+    if (modeSelectTrigger) {
+        modeSelectTrigger.addEventListener('click', () => {
+            const isOpen = modeSelectBox && modeSelectBox.classList.contains('is-open');
+            setModeSelectOpen(!isOpen);
+        });
+    }
+    if (modeSelectMenu) {
+        Array.from(modeSelectMenu.querySelectorAll('.mode-select-option')).forEach((option) => {
+            option.addEventListener('click', () => {
+                setPromptMode(option.dataset.mode || 'conversation');
+            });
+        });
+    }
     sendBtn.addEventListener('click', () => {
         if (isSessionProcessing(currentSessionId)) {
             cancelCurrentPrompt();
@@ -5052,6 +5195,9 @@
         if (!modelCombobox.contains(event.target)) {
             setModelComboboxOpen(false);
         }
+        if (modeSelectBox && !modeSelectBox.contains(event.target)) {
+            setModeSelectOpen(false);
+        }
     });
     userInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -5113,6 +5259,10 @@
         }
         if (event.key === 'Escape' && modelCombobox.classList.contains('is-open')) {
             setModelComboboxOpen(false);
+            return;
+        }
+        if (event.key === 'Escape' && modeSelectBox && modeSelectBox.classList.contains('is-open')) {
+            setModeSelectOpen(false);
             return;
         }
         if (event.key === 'Escape' && apiWorkbenchOpen) {
