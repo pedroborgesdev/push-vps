@@ -4498,15 +4498,10 @@
         if (message.mode === 'query') {
             msgDiv.textContent = '';
 
-            const sqlLabel = document.createElement('div');
-            sqlLabel.className = 'message-sql-label';
-            sqlLabel.textContent = 'SQL (query mode)';
-
             const sqlBlock = document.createElement('pre');
             sqlBlock.className = 'message-sql-block';
             sqlBlock.textContent = formatSqlForDisplay(message.sql || message.text || '');
 
-            msgDiv.appendChild(sqlLabel);
             msgDiv.appendChild(sqlBlock);
         } else {
             msgDiv.innerHTML = marked.parse(message.text || '');
