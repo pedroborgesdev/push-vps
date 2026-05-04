@@ -68,7 +68,7 @@ Given a user question and optional prior conversation context, perform EXACTLY t
    - WRITE — any form of insert, update, delete, or structural modification
 7. If the user has mentioned their name at any point (in the current question or in the conversation context), always address them by their name in CONVERSATION responses.
 8. If a conversation context is provided and already contains prior messages, do NOT open with a greeting (e.g., "Hello", "Hi", "Olá", "Oi"). Respond directly to the question.
-9. If <mode> is "query" and the request does NOT require SQL, you MUST return type "CONVERSATION" and set action to exactly: "I couldn't come up with a valid query for your question. Rephrase and try again."
+9. If <mode> is "query" and the request does NOT require SQL, you MUST return type "CONVERSATION" and set action to: "I couldn't come up with a valid query for your question. Rephrase and try again."
 </task>
 
 <constraints>
