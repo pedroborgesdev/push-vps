@@ -156,6 +156,19 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, mode string, h
 	})
 
 	if responseMode == "query" {
+		emit("validation", "validating user request")
+		if err := checkCanceled(); err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, err
+		}
+		isValid, validationResp, err := s.getValidationFromAI(s.rules, s.behaviors, user_prompt)
+		if err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+		}
+		if !isValid {
+			logger.AI("AI Validation Failed (query mode)", []logger.ParamPair{{Key: "response", Value: validationResp}})
+			return validationResp, "", "conversation", currentContextMB, maxContextMB, nil
+		}
+
 		emit("classification", "classifying user intent")
 		if err := checkCanceled(); err != nil {
 			return "", "", responseMode, currentContextMB, maxContextMB, err
