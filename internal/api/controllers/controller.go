@@ -88,7 +88,7 @@ func (c *Controller) Prompt(ctx *gin.Context) {
 	sessionID, _ := ctx.Get(middlewares.SessionContextKey)
 	history := c.sessions.GetHistory(sessionID.(string))
 
-	steps, sqlQuery, currentContextMB, maxContextMB, err := c.service.Prompt(ctx.Request.Context(), req.Prompt, history)
+	steps, sqlQuery, responseMode, currentContextMB, maxContextMB, err := c.service.Prompt(ctx.Request.Context(), req.Prompt, req.Mode, history)
 	if err != nil {
 		utils.BadRequest(ctx, gin.H{"error": err.Error()})
 		logger.Errorf("Response not resolved", []logger.ParamPair{{Key: "error", Value: err.Error()}})
@@ -99,6 +99,7 @@ func (c *Controller) Prompt(ctx *gin.Context) {
 
 	utils.Success(ctx, gin.H{
 		"prompt":                req.Prompt,
+		"mode":                  responseMode,
 		"response":              steps,
 		"sql":                   sqlQuery,
 		"current_context_usage": currentContextMB,
@@ -145,7 +146,7 @@ func (c *Controller) PromptStream(ctx *gin.Context) {
 
 	sendEvent("status", gin.H{"message": "starting processing", "request_id": requestID})
 
-	steps, sqlQuery, currentContextMB, maxContextMB, err := c.service.Prompt(promptCtx, req.Prompt, history, func(stage string, message string) {
+	steps, sqlQuery, responseMode, currentContextMB, maxContextMB, err := c.service.Prompt(promptCtx, req.Prompt, req.Mode, history, func(stage string, message string) {
 		sendEvent("thought", gin.H{"stage": stage, "message": message})
 	})
 	if err != nil {
@@ -163,6 +164,7 @@ func (c *Controller) PromptStream(ctx *gin.Context) {
 
 	sendEvent("result", gin.H{
 		"prompt":                req.Prompt,
+		"mode":                  responseMode,
 		"response":              steps,
 		"sql":                   sqlQuery,
 		"current_context_usage": currentContextMB,

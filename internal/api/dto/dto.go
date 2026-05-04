@@ -2,6 +2,7 @@ package dto
 
 type Prompt struct {
 	Prompt string `json:"prompt" binding:"required"`
+	Mode   string `json:"mode"`
 }
 
 type PromptCancel struct {

@@ -103,7 +103,16 @@ func computeContextUsageMB(history []session.Message, currentPrompt string) (cur
 	return float64(total) / (1024 * 1024), float64(MaxContextBytes) / (1024 * 1024)
 }
 
-func (s *Service) Prompt(ctx context.Context, user_prompt string, history []session.Message, progressCb ...func(stage string, message string)) (string, string, float64, float64, error) {
+func normalizePromptMode(mode string) string {
+	switch strings.ToLower(strings.TrimSpace(mode)) {
+	case "query":
+		return "query"
+	default:
+		return "conversation"
+	}
+}
+
+func (s *Service) Prompt(ctx context.Context, user_prompt string, mode string, history []session.Message, progressCb ...func(stage string, message string)) (string, string, string, float64, float64, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -125,16 +134,37 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 	}
 
 	currentContextMB, maxContextMB := computeContextUsageMB(history, user_prompt)
+	responseMode := normalizePromptMode(mode)
 	emit("context", fmt.Sprintf("context: %.4f MB / %.4f MB", currentContextMB, maxContextMB))
 	if err := checkCanceled(); err != nil {
-		return "", "", currentContextMB, maxContextMB, err
+		return "", "", responseMode, currentContextMB, maxContextMB, err
 	}
 	if err := s.ensureDatabaseReady(); err != nil {
-		return "", "", currentContextMB, maxContextMB, err
+		return "", "", responseMode, currentContextMB, maxContextMB, err
 	}
 
 	if s.client == nil {
-		return "", "", currentContextMB, maxContextMB, errors.New("model not initialized")
+		return "", "", responseMode, currentContextMB, maxContextMB, errors.New("model not initialized")
+	}
+
+	if responseMode == "query" {
+		emit("sql_generation", "generating final SQL")
+		if err := checkCanceled(); err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, err
+		}
+
+		sqlSteps, err := s.getFinalSQLFromAI(s.rules, user_prompt, s.schema, nil, nil, nil, "")
+		if err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+		}
+
+		sqlOutput := strings.TrimSpace(strings.Join(sqlSteps, "\n"))
+		if sqlOutput == "" {
+			return "", "", responseMode, currentContextMB, maxContextMB, errors.New("no SQL generated")
+		}
+
+		emit("done", "sql response ready")
+		return sqlOutput, sqlOutput, responseMode, currentContextMB, maxContextMB, nil
 	}
 
 	// // Step 1B: Validate the prompt based on rules
@@ -161,11 +191,11 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 	// Step 1A: Classify actions from user prompt
 	emit("classification", "classifying user intent")
 	if err := checkCanceled(); err != nil {
-		return "", "", currentContextMB, maxContextMB, err
+		return "", "", responseMode, currentContextMB, maxContextMB, err
 	}
 	actions, err := s.getActionFromAI(s.rules, histStr, user_prompt)
 	if err != nil {
-		return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+		return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
 	}
 
 	// Check if any action is CONVERSATION — return it directly
@@ -174,7 +204,7 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 			logger.AI("AI Conversation Response", []logger.ParamPair{
 				{Key: "response", Value: action},
 			})
-			return action, "", currentContextMB, maxContextMB, nil
+			return action, "", responseMode, currentContextMB, maxContextMB, nil
 		}
 	}
 
@@ -197,12 +227,12 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 	for action, actionType := range actions {
 		emit("action", fmt.Sprintf("processing action_%d (%s)", actionIdx, actionType))
 		if err := checkCanceled(); err != nil {
-			return "", "", currentContextMB, maxContextMB, err
+			return "", "", responseMode, currentContextMB, maxContextMB, err
 		}
 		// Step 1B: Enhance the prompt for this specific action
 		enhancedPrompt, needSql, err := s.getEnhancedPromptFromAI(action, actionType, s.schema)
 		if err != nil {
-			return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+			return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
 		}
 		logger.AI(fmt.Sprintf("AI Enhanced Prompt (action_%d)", actionIdx), []logger.ParamPair{
 			{Key: "enhanced", Value: enhancedPrompt},
@@ -215,11 +245,11 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 			// Step 2A: Plan which tables/columns/joins are needed
 			emit("planning", fmt.Sprintf("planning SQL for action_%d", actionIdx))
 			if err := checkCanceled(); err != nil {
-				return "", "", currentContextMB, maxContextMB, err
+				return "", "", responseMode, currentContextMB, maxContextMB, err
 			}
 			planning, err := s.getPlanningFromAI(action)
 			if err != nil {
-				return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+				return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
 			}
 			logger.AI(fmt.Sprintf("AI Planning (action_%d)", actionIdx), []logger.ParamPair{
 				{Key: "tables", Value: strings.Join(planning.Tables, ", ")},
@@ -230,18 +260,18 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 			// Step 2B: Inspect the database to understand actual data
 			emit("inspection", fmt.Sprintf("inspecting data for action_%d", actionIdx))
 			if err := checkCanceled(); err != nil {
-				return "", "", currentContextMB, maxContextMB, err
+				return "", "", responseMode, currentContextMB, maxContextMB, err
 			}
 			inspectResult := s.getInspectionFromAI(planning.Tables, planning.Columns, planning.Joins)
 
 			// Step 2C: Generate final SQL using enhanced prompt + schema + planning + inspection
 			emit("sql_generation", fmt.Sprintf("generating final SQL for action_%d", actionIdx))
 			if err := checkCanceled(); err != nil {
-				return "", "", currentContextMB, maxContextMB, err
+				return "", "", responseMode, currentContextMB, maxContextMB, err
 			}
 			sqlSteps, err := s.getFinalSQLFromAI(s.rules, action, s.schema, planning.Tables, planning.Columns, planning.Joins, inspectResult)
 			if err != nil {
-				return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+				return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
 			}
 			sqlStepParams := make([]logger.ParamPair, len(sqlSteps))
 			for j, sql := range sqlSteps {
@@ -255,7 +285,7 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 			for stepIdx, sql := range sqlSteps {
 				emit("sql_execute", fmt.Sprintf("executing action_%d_step_%d", actionIdx, stepIdx+1))
 				if err := checkCanceled(); err != nil {
-					return "", "", currentContextMB, maxContextMB, err
+					return "", "", responseMode, currentContextMB, maxContextMB, err
 				}
 				stepMap := map[string]interface{}{
 					"step":     fmt.Sprintf("action_%d_step_%d", actionIdx, stepIdx+1),
@@ -264,7 +294,7 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 				}
 				results, err := s.getSqlResults([]map[string]interface{}{stepMap})
 				if err != nil {
-					return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to execute SQL step: %s", err.Error())
+					return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to execute SQL step: %s", err.Error())
 				}
 				allSqlResults = append(allSqlResults, results...)
 			}
@@ -276,7 +306,7 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 	// Convert allSqlResults to JSON string
 	allSqlResultsJSON, err := json.Marshal(allSqlResults)
 	if err != nil {
-		return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to marshal SQL results: %s", err.Error())
+		return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to marshal SQL results: %s", err.Error())
 	}
 
 	logger.AI("AI All SQL Results", []logger.ParamPair{
@@ -284,14 +314,14 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 	})
 	emit("nl", "building natural-language response")
 	if err := checkCanceled(); err != nil {
-		return "", "", currentContextMB, maxContextMB, err
+		return "", "", responseMode, currentContextMB, maxContextMB, err
 	}
 
 	// Step 3A: Convert all SQL results to natural language (unified response)
 	// combinedEnhanced := strings.Join(allEnhancedPrompts, "\n")
 	naturalLanguageResult, err := s.getNaturalLanguageResultFromAI(user_prompt, histStr, allSqlResultsJSON, s.behaviors)
 	if err != nil {
-		return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+		return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
 	}
 	logger.AI("AI Natural Language Result", []logger.ParamPair{
 		{Key: "result", Value: naturalLanguageResult},
@@ -299,18 +329,18 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, history []sess
 
 	// Step 3B: Sanitize the result based on rules
 	if err := checkCanceled(); err != nil {
-		return "", "", currentContextMB, maxContextMB, err
+		return "", "", responseMode, currentContextMB, maxContextMB, err
 	}
 	sanitizedResult, err := s.sanitizeNaturalLanguageResult(s.rules, s.behaviors, histStr, naturalLanguageResult)
 	if err != nil {
-		return "", "", currentContextMB, maxContextMB, fmt.Errorf("unable to sanitize natural language result: %s", err.Error())
+		return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to sanitize natural language result: %s", err.Error())
 	}
 	logger.AI("AI Sanitized Result", []logger.ParamPair{
 		{Key: "sanitized", Value: sanitizedResult},
 	})
 	emit("done", "final response ready")
 
-	return sanitizedResult, strings.Join(allSqlQueries, "\n"), currentContextMB, maxContextMB, nil
+	return sanitizedResult, strings.Join(allSqlQueries, "\n"), responseMode, currentContextMB, maxContextMB, nil
 }
 
 func (s *Service) getNaturalLanguageResultFromAI(user_prompt, histStr string, sqlResultsJSON []byte, behaviors string) (string, error) {

@@ -1537,6 +1537,29 @@
             padding: 0;
         }
 
+        .message-sql-label {
+            color: #ffe1cc;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .message-sql-block {
+            margin: 0;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 143, 77, 0.35);
+            background: linear-gradient(180deg, rgba(22, 12, 6, 0.94), rgba(14, 8, 4, 0.94));
+            color: #ffe9d8;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
         .resend-btn {
             margin-top: 14px;
             padding: 10px 14px;
@@ -1713,6 +1736,38 @@
             display: grid;
             gap: 14px;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .mode-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-toggle-btn {
+            min-height: 34px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            transition: 180ms ease;
+        }
+
+        .mode-toggle-btn:hover {
+            color: var(--text);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-toggle-btn.active {
+            color: #180b21;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            border-color: transparent;
+            box-shadow: 0 8px 24px rgba(255, 143, 77, 0.22);
         }
 
         .composer-top {
@@ -2382,6 +2437,16 @@
                 gap: 10px;
             }
 
+            .mode-toggle {
+                width: 100%;
+            }
+
+            .mode-toggle-btn {
+                flex: 1;
+                min-height: 36px;
+                font-size: 0.76rem;
+            }
+
             .main-panel {
                 height: 100%;
             }
@@ -2932,6 +2997,10 @@
 
             <footer class="composer">
                 <div class="composer-shell">
+                    <div class="mode-toggle" role="group" aria-label="Modo do prompt">
+                        <button class="mode-toggle-btn active" id="mode-conversation-btn" type="button" aria-pressed="true">Conversation</button>
+                        <button class="mode-toggle-btn" id="mode-query-btn" type="button" aria-pressed="false">Query</button>
+                    </div>
                     <div class="composer-top">
                         <textarea id="user-input" rows="1" placeholder="Descreva a consulta, a alteracao de dados ou a pergunta que voce quer resolver..."></textarea>
                         <button id="send-btn" title="Enviar mensagem">
@@ -2967,6 +3036,8 @@
     const composer = document.querySelector('.composer');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
+    const modeConversationBtn = document.getElementById('mode-conversation-btn');
+    const modeQueryBtn = document.getElementById('mode-query-btn');
     const newChatBtn = document.getElementById('new-chat-btn');
     const mobileNewChatBtn = document.getElementById('mobile-new-chat-btn');
     const sessionList = document.getElementById('session-list');
@@ -3027,6 +3098,7 @@
     let docsWorkbenchOpen = false;
     let availableModels = [];
     let selectedModelName = '';
+    let selectedPromptMode = 'conversation';
     let latestSchemaText = '';
     let maxRequestSizeKb = 20;
     const promptStates = new Map();
@@ -3197,6 +3269,20 @@
         Array.from(modelComboboxMenu.querySelectorAll('.combo-option')).forEach((option) => {
             option.classList.toggle('is-selected', option.dataset.model === selectedModelName);
         });
+    }
+
+    function setPromptMode(mode) {
+        selectedPromptMode = String(mode || '').toLowerCase() === 'query' ? 'query' : 'conversation';
+
+        const isConversation = selectedPromptMode === 'conversation';
+        if (modeConversationBtn) {
+            modeConversationBtn.classList.toggle('active', isConversation);
+            modeConversationBtn.setAttribute('aria-pressed', isConversation ? 'true' : 'false');
+        }
+        if (modeQueryBtn) {
+            modeQueryBtn.classList.toggle('active', !isConversation);
+            modeQueryBtn.setAttribute('aria-pressed', !isConversation ? 'true' : 'false');
+        }
     }
 
     function getPromptState(sessionId, createIfMissing = false) {
@@ -4151,6 +4237,7 @@
             noResend: Boolean(options.noResend),
             originalPrompt: options.originalPrompt || '',
             sql: options.sql || '',
+            mode: options.mode || 'conversation',
             createdAt: new Date().toISOString()
         };
 
@@ -4278,7 +4365,22 @@
 
     function renderBotMessageContent(msgDiv, message) {
         msgDiv.classList.remove('bot-typing-text');
-        msgDiv.innerHTML = marked.parse(message.text || '');
+        if (message.mode === 'query') {
+            msgDiv.textContent = '';
+
+            const sqlLabel = document.createElement('div');
+            sqlLabel.className = 'message-sql-label';
+            sqlLabel.textContent = 'SQL (query mode)';
+
+            const sqlBlock = document.createElement('pre');
+            sqlBlock.className = 'message-sql-block';
+            sqlBlock.textContent = formatSqlForDisplay(message.sql || message.text || '');
+
+            msgDiv.appendChild(sqlLabel);
+            msgDiv.appendChild(sqlBlock);
+        } else {
+            msgDiv.innerHTML = marked.parse(message.text || '');
+        }
         appendResendButton(msgDiv, message);
     }
 
@@ -4316,7 +4418,7 @@
         wrapper.appendChild(meta);
         wrapper.appendChild(msgDiv);
 
-        if (message.sender === 'bot' && message.sql) {
+        if (message.sender === 'bot' && message.sql && message.mode !== 'query') {
             const actionsRow = document.createElement('div');
             actionsRow.className = 'message-actions-row';
             appendSqlButton(actionsRow, message);
@@ -4720,7 +4822,7 @@
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 signal: promptState.abortController.signal,
-                body: JSON.stringify({ prompt: promptText })
+                body: JSON.stringify({ prompt: promptText, mode: selectedPromptMode })
             });
 
             await sleep(560);
@@ -4822,7 +4924,8 @@
                 sessionId: originSessionId,
                 reuseTypingNode: shouldRenderTypingInCurrentSession,
                 typeResponse: shouldRenderTypingInCurrentSession,
-                sql: finalData.sql || ''
+                sql: finalData.sql || '',
+                mode: finalData.mode || selectedPromptMode,
             });
             if (finalData.max_context_usage != null && finalData.current_context_usage != null) {
                 updateContextBar(finalData.current_context_usage, finalData.max_context_usage);
@@ -4880,6 +4983,12 @@
         mobileNewChatBtn.addEventListener('click', () => createSession());
     }
     document.getElementById('clear-context-btn').addEventListener('click', clearContext);
+    if (modeConversationBtn) {
+        modeConversationBtn.addEventListener('click', () => setPromptMode('conversation'));
+    }
+    if (modeQueryBtn) {
+        modeQueryBtn.addEventListener('click', () => setPromptMode('query'));
+    }
     sendBtn.addEventListener('click', () => {
         if (isSessionProcessing(currentSessionId)) {
             cancelCurrentPrompt();
@@ -5014,6 +5123,7 @@
     loadState();
     loadModelInfo(false);
     renderDocsEndpoint('prompt_sync');
+    setPromptMode('conversation');
     syncMobileViewportLayout();
     syncMobileKeyboardLayout();
     if (!isMobileViewport()) {
