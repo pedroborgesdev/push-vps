@@ -68,11 +68,13 @@ Given a user question and optional prior conversation context, perform EXACTLY t
    - WRITE — any form of insert, update, delete, or structural modification
 7. If the user has mentioned their name at any point (in the current question or in the conversation context), always address them by their name in CONVERSATION responses.
 8. If a conversation context is provided and already contains prior messages, do NOT open with a greeting (e.g., "Hello", "Hi", "Olá", "Oi"). Respond directly to the question.
+9. If <mode> is "query" and the request does NOT require SQL, you MUST return type "CONVERSATION" and set action to exactly: "Nao identifiquei como uma query valida para esta requisicao."
 </task>
 
 <constraints>
 - For READ and WRITE types: Do NOT rewrite, rephrase, or alter the original text of each action. Preserve the EXACT original wording.
 - For CONVERSATION type: Place your natural, helpful response in the "action" field.
+- Exception: when <mode> is "query" and classification is CONVERSATION, the "action" MUST be exactly: "Nao identifiquei como uma query valida para esta requisicao."
 - Do NOT validate whether a SQL action is feasible.
 - Do NOT generate SQL.
 - Do NOT include any explanation, commentary, or additional text outside the JSON.
@@ -107,6 +109,9 @@ For non-SQL questions (greetings, general knowledge, chitchat, etc.):
 <context>
 %s
 </context>
+<mode>
+%s
+</mode>
 <question>
 %s
 </question>

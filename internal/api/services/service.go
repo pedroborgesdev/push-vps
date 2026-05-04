@@ -147,7 +147,32 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, mode string, h
 		return "", "", responseMode, currentContextMB, maxContextMB, errors.New("model not initialized")
 	}
 
+	// Build conversation history string for context.
+	histStr := formatHistory(history)
+
+	logger.AI("Session Context Usage", []logger.ParamPair{
+		{Key: "current_mb", Value: fmt.Sprintf("%.4f", currentContextMB)},
+		{Key: "max_mb", Value: fmt.Sprintf("%.4f", maxContextMB)},
+	})
+
 	if responseMode == "query" {
+		emit("classification", "classifying user intent")
+		if err := checkCanceled(); err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, err
+		}
+
+		actions, err := s.getActionFromAI(s.rules, histStr, user_prompt, responseMode)
+		if err != nil {
+			return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
+		}
+
+		for action, actionType := range actions {
+			if actionType == "CONVERSATION" {
+				logger.AI("AI Query Classification Fallback", []logger.ParamPair{{Key: "response", Value: action}})
+				return action, "", "conversation", currentContextMB, maxContextMB, nil
+			}
+		}
+
 		emit("action", "processing action_1 (QUERY)")
 		enhancedPrompt, _, err := s.getEnhancedPromptFromAI(user_prompt, "QUERY", s.schema)
 		if err != nil {
@@ -217,20 +242,12 @@ func (s *Service) Prompt(ctx context.Context, user_prompt string, mode string, h
 	// 	return validationResp, nil
 	// }
 
-	// Build conversation history string for context
-	histStr := formatHistory(history)
-
-	logger.AI("Session Context Usage", []logger.ParamPair{
-		{Key: "current_mb", Value: fmt.Sprintf("%.4f", currentContextMB)},
-		{Key: "max_mb", Value: fmt.Sprintf("%.4f", maxContextMB)},
-	})
-
 	// Step 1A: Classify actions from user prompt
 	emit("classification", "classifying user intent")
 	if err := checkCanceled(); err != nil {
 		return "", "", responseMode, currentContextMB, maxContextMB, err
 	}
-	actions, err := s.getActionFromAI(s.rules, histStr, user_prompt)
+	actions, err := s.getActionFromAI(s.rules, histStr, user_prompt, responseMode)
 	if err != nil {
 		return "", "", responseMode, currentContextMB, maxContextMB, fmt.Errorf("unable to receive a valid response: %s", err.Error())
 	}
@@ -738,8 +755,8 @@ func (s *Service) readSchemaFile() (string, error) {
 	return string(content), nil
 }
 
-func (s *Service) getActionFromAI(rules, histStr, user_prompt string) (map[string]string, error) {
-	resp, err := s.client.Prompt(fmt.Sprintf(prompts.Prompt_1B_Classificacao, rules, histStr, user_prompt))
+func (s *Service) getActionFromAI(rules, histStr, user_prompt, mode string) (map[string]string, error) {
+	resp, err := s.client.Prompt(fmt.Sprintf(prompts.Prompt_1B_Classificacao, rules, histStr, mode, user_prompt))
 	if err != nil {
 		return nil, err
 	}
