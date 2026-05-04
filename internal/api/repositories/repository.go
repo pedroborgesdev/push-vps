@@ -22,13 +22,13 @@ func (r *Repository) SchemaPOST() error {
 
 	db := r.DB.DB
 
-	defer db.Close()
-
 	file, err := os.Create(outFile)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
+
+	tableNames := make([]string, 0)
 
 	rows, err := db.Query(`
 		SELECT name FROM sqlite_master
@@ -38,14 +38,26 @@ func (r *Repository) SchemaPOST() error {
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 
 	for rows.Next() {
 		var tableName string
 		if err := rows.Scan(&tableName); err != nil {
+			rows.Close()
 			return err
 		}
+		tableNames = append(tableNames, tableName)
+	}
 
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+
+	if err := rows.Close(); err != nil {
+		return err
+	}
+
+	for _, tableName := range tableNames {
 		fmt.Fprintf(file, "TABLE %s\n", tableName)
 
 		colRows, err := db.Query(fmt.Sprintf("PRAGMA table_info('%s')", tableName))
@@ -64,6 +76,7 @@ func (r *Repository) SchemaPOST() error {
 			)
 
 			if err := colRows.Scan(&cid, &name, &colType, &notnull, &dfltValue, &pk); err != nil {
+				colRows.Close()
 				return err
 			}
 
@@ -74,6 +87,12 @@ func (r *Repository) SchemaPOST() error {
 
 			fmt.Fprintf(file, "  COL %s %s%s\n", name, colType, pkLabel)
 		}
+
+		if err := colRows.Err(); err != nil {
+			colRows.Close()
+			return err
+		}
+
 		colRows.Close()
 
 		fkRows, err := db.Query(fmt.Sprintf("PRAGMA foreign_key_list('%s')", tableName))
@@ -94,11 +113,18 @@ func (r *Repository) SchemaPOST() error {
 			)
 
 			if err := fkRows.Scan(&id, &seq, &table, &from, &to, &onUpdate, &onDelete, &match); err != nil {
+				fkRows.Close()
 				return err
 			}
 
 			fmt.Fprintf(file, "  FK %s -> %s.%s\n", from, table, to)
 		}
+
+		if err := fkRows.Err(); err != nil {
+			fkRows.Close()
+			return err
+		}
+
 		fkRows.Close()
 
 		fmt.Fprintln(file)

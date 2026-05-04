@@ -78,6 +78,15 @@
             font: inherit;
         }
 
+        a {
+            color: var(--accent-2);
+        }
+
+        a:hover,
+        a:focus-visible {
+            color: var(--accent-3);
+        }
+
         #app-shell {
             position: relative;
             width: 100%;
@@ -413,6 +422,10 @@
         .topbar-copy p {
             color: var(--muted);
             font-size: 0.95rem;
+        }
+
+        .mobile-topbar-logo {
+            display: none;
         }
 
         .topbar-actions {
@@ -2208,6 +2221,8 @@
             }
 
             .topbar {
+                position: relative;
+                justify-content: center;
                 padding-top: 16px;
                 padding-bottom: 12px;
                 gap: 10px;
@@ -2215,6 +2230,27 @@
 
             .mobile-menu-btn {
                 display: inline-flex;
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .topbar-copy {
+                display: none;
+            }
+
+            .mobile-topbar-logo {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: min(34vw, 128px);
+            }
+
+            .mobile-topbar-logo img {
+                width: 100%;
+                height: auto;
+                display: block;
             }
 
             .topbar-copy h2 {
@@ -2673,6 +2709,9 @@
                 <button class="mobile-menu-btn" id="mobile-menu-btn" title="Abrir menu" aria-label="Abrir menu lateral">
                     <i class="fas fa-bars"></i>
                 </button>
+                <div class="mobile-topbar-logo" aria-hidden="true">
+                    <img src="./icon-mobile.png" alt="">
+                </div>
                 <div class="topbar-copy">
                     <h2 id="chat-title">Nova sessao</h2>
                     <p id="chat-subtitle">Converse com o motor local e mantenha cada assunto em uma sessao separada.</p>
@@ -4256,7 +4295,7 @@
         meta.className = 'message-meta';
         meta.innerHTML = `
             <span class="message-avatar ${message.sender === 'user' ? '' : 'bot-avatar'}">${message.sender === 'user' ? '<i class="fas fa-user"></i>' : '<img src="./icon.png" alt="PapoQL">'}</span>
-            <span>${message.sender === 'user' ? 'Voce' : 'PapoQL'}</span>
+            <span>${message.sender === 'user' ? 'Voce' : 'Papo'}</span>
             <span>${formatTime(message.createdAt)}</span>
         `;
 
@@ -4487,7 +4526,7 @@
         wrapper.innerHTML = `
             <div class="message-meta">
                 <span class="message-avatar bot-avatar"><img src="./icon.png" alt="PapoQL"></span>
-                <span>PapoQL</span>
+                <span>Papo</span>
                 <span>digitando</span>
             </div>
             <div class="message bot typing-message">
@@ -4802,7 +4841,7 @@
                 return;
             }
             hideTyping(originSessionId);
-            addMessage('bot', 'Erro de conexao com o servidor local. Verifique se a API esta em execucao em http://195.35.43.220:8801.', {
+            addMessage('bot', 'Erro de conexao com o servidor PapoQL', {
                 reuseTypingNode: true,
                 isError: true,
                 originalPrompt: promptText,
