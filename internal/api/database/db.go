@@ -66,21 +66,33 @@ func initSQLiteDB() (*Database, error) {
 }
 
 func initSQLServerDB() (*Database, error) {
+	host, instance := splitSQLServerHostAndInstance(config.AppConfig.SQLSERVER_HOST)
+	if host == "" {
+		return nil, fmt.Errorf("sqlserver host is empty")
+	}
+
 	query := url.Values{}
+	if dbName := strings.TrimSpace(config.AppConfig.SQLSERVER_DATABASE); dbName != "" {
+		query.Set("database", dbName)
+	}
 	if value := strings.TrimSpace(config.AppConfig.SQLSERVER_ENCRYPT); value != "" {
 		query.Set("encrypt", value)
 	}
 	query.Set("TrustServerCertificate", fmt.Sprintf("%t", config.AppConfig.SQLSERVER_TRUST_CERT))
+	if instance != "" {
+		query.Set("instance", instance)
+	}
+
+	hostWithPort := host
+	if config.AppConfig.SQLSERVER_PORT > 0 {
+		hostWithPort = fmt.Sprintf("%s:%d", host, config.AppConfig.SQLSERVER_PORT)
+	}
 
 	dsnURL := &url.URL{
 		Scheme:   "sqlserver",
 		User:     url.UserPassword(config.AppConfig.SQLSERVER_USER, config.AppConfig.SQLSERVER_PASSWORD),
-		Host:     fmt.Sprintf("%s:%d", config.AppConfig.SQLSERVER_HOST, config.AppConfig.SQLSERVER_PORT),
+		Host:     hostWithPort,
 		RawQuery: query.Encode(),
-	}
-
-	if dbName := strings.TrimSpace(config.AppConfig.SQLSERVER_DATABASE); dbName != "" {
-		dsnURL.Path = dbName
 	}
 
 	db, err := sql.Open("sqlserver", dsnURL.String())
@@ -95,4 +107,20 @@ func initSQLServerDB() (*Database, error) {
 	}
 
 	return &Database{DB: db}, nil
+}
+
+func splitSQLServerHostAndInstance(value string) (string, string) {
+	hostRaw := strings.TrimSpace(value)
+	if hostRaw == "" {
+		return "", ""
+	}
+
+	parts := strings.SplitN(hostRaw, "\\", 2)
+	host := strings.TrimSpace(parts[0])
+	if len(parts) == 1 {
+		return host, ""
+	}
+
+	instance := strings.TrimSpace(parts[1])
+	return host, instance
 }
