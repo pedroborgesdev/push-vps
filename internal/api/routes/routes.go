@@ -18,6 +18,7 @@ func SetupRoutes(router *gin.Engine) {
 	v1.DELETE("/context", middlewares.SessionMiddleware(), controller.ClearContext)
 	v1.GET("/model", controller.ModelGET)
 	v1.PUT("/model", controller.ModelPUT)
+	v1.POST("/config/auth", controller.ConfigAuthPOST)
 	v1.POST("/schema", controller.SchemaPOST)
 	v1.GET("/schema", controller.SchemaGET)
 }

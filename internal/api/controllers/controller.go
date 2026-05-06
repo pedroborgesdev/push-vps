@@ -88,7 +88,7 @@ func (c *Controller) Prompt(ctx *gin.Context) {
 	sessionID, _ := ctx.Get(middlewares.SessionContextKey)
 	history := c.sessions.GetHistory(sessionID.(string))
 
-	steps, sqlQuery, responseMode, currentContextMB, maxContextMB, err := c.service.Prompt(ctx.Request.Context(), req.Prompt, req.Mode, history)
+	steps, sqlQuery, responseMode, currentContextMB, maxContextMB, err := c.service.Prompt(ctx.Request.Context(), req.Prompt, req.Mode, req.Model, history)
 	if err != nil {
 		utils.BadRequest(ctx, gin.H{"error": err.Error()})
 		logger.Errorf("Response not resolved", []logger.ParamPair{{Key: "error", Value: err.Error()}})
@@ -100,6 +100,7 @@ func (c *Controller) Prompt(ctx *gin.Context) {
 	utils.Success(ctx, gin.H{
 		"prompt":                req.Prompt,
 		"mode":                  responseMode,
+		"model":                 req.Model,
 		"response":              steps,
 		"sql":                   sqlQuery,
 		"current_context_usage": currentContextMB,
@@ -146,7 +147,7 @@ func (c *Controller) PromptStream(ctx *gin.Context) {
 
 	sendEvent("status", gin.H{"message": "starting processing", "request_id": requestID})
 
-	steps, sqlQuery, responseMode, currentContextMB, maxContextMB, err := c.service.Prompt(promptCtx, req.Prompt, req.Mode, history, func(stage string, message string) {
+	steps, sqlQuery, responseMode, currentContextMB, maxContextMB, err := c.service.Prompt(promptCtx, req.Prompt, req.Mode, req.Model, history, func(stage string, message string) {
 		sendEvent("thought", gin.H{"stage": stage, "message": message})
 	})
 	if err != nil {
@@ -165,6 +166,7 @@ func (c *Controller) PromptStream(ctx *gin.Context) {
 	sendEvent("result", gin.H{
 		"prompt":                req.Prompt,
 		"mode":                  responseMode,
+		"model":                 req.Model,
 		"response":              steps,
 		"sql":                   sqlQuery,
 		"current_context_usage": currentContextMB,
@@ -255,6 +257,21 @@ func (c *Controller) SchemaGET(ctx *gin.Context) {
 	utils.Success(ctx, gin.H{
 		"schema": schema,
 	})
+}
+
+func (c *Controller) ConfigAuthPOST(ctx *gin.Context) {
+	var req dto.ConfigAuth
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(ctx, gin.H{"error": err.Error()})
+		return
+	}
+
+	if !c.service.ValidateConfigPassword(req.Password) {
+		utils.Unauthorized(ctx, gin.H{"valid": false, "error": "invalid password"})
+		return
+	}
+
+	utils.Success(ctx, gin.H{"valid": true})
 }
 
 func truncateString(input string, maxLength int) string {

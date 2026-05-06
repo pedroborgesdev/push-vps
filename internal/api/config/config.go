@@ -13,6 +13,7 @@ import (
 type Config struct {
 	HTTP_PORT           string
 	DB_PATH             string
+	SECRET_KEY          string
 	GEMINI_API_KEY      string
 	OPENAI_API_KEY      string
 	HUGGINGFACE_API_KEY string
@@ -32,6 +33,7 @@ func LoadAppConfig() error {
 	AppConfig = Config{
 		HTTP_PORT:           getEnvStr("HTTP_PORT", "8801"),
 		DB_PATH:             getEnvStr("DB_PATH", ""),
+		SECRET_KEY:          getEnvStr("SECRET_KEY", "default_secret_key"),
 		GEMINI_API_KEY:      getEnvStr("GEMINI_API_KEY", ""),
 		OPENAI_API_KEY:      getEnvStr("OPENAI_API_KEY", ""),
 		HUGGINGFACE_API_KEY: getEnvStr("HUGGINGFACE_API_KEY", ""),

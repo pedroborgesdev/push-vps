@@ -960,6 +960,89 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        .config-auth-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 4, 6, 0.74);
+            backdrop-filter: blur(6px);
+            z-index: 46;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 180ms ease;
+        }
+
+        .config-auth-modal.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .config-auth-card {
+            width: min(440px, calc(100vw - 28px));
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px solid rgba(181, 109, 255, 0.2);
+            background: linear-gradient(180deg, rgba(13, 13, 17, 0.97), rgba(6, 6, 9, 0.97));
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+            display: grid;
+            gap: 12px;
+            font-family: inherit;
+        }
+
+        .config-auth-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .config-auth-head h4 {
+            margin: 3px 0 0;
+            font-family: inherit;
+            font-size: 1.02rem;
+        }
+
+        .config-auth-head p {
+            color: var(--muted);
+            font-size: 0.84rem;
+            line-height: 1.45;
+            margin-top: 5px;
+        }
+
+        .config-auth-input {
+            width: 100%;
+            min-height: 40px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(181, 109, 255, 0.22);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            font-size: 0.92rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .config-auth-input:focus {
+            border-color: rgba(255, 164, 102, 0.45);
+            box-shadow: 0 0 0 2px rgba(255, 143, 77, 0.12);
+        }
+
+        .config-auth-error {
+            min-height: 18px;
+            color: #ff8f8f;
+            font-size: 0.78rem;
+            line-height: 1.35;
+        }
+
+        .config-auth-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
         .api-grid {
             min-height: 0;
             display: grid;
@@ -1407,6 +1490,80 @@
             border-bottom-left-radius: 8px;
         }
 
+        .message.bot.query-message {
+            padding: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            line-height: normal;
+            overflow: visible;
+            border-radius: 0;
+        }
+
+        .query-text-panel {
+            min-width: min(78vw, 560px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: linear-gradient(180deg, rgba(9, 10, 14, 0.96), rgba(5, 6, 9, 0.96));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(0, 0, 0, 0.32);
+            overflow: hidden;
+        }
+
+        .query-text-panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            background: linear-gradient(135deg, rgba(255, 143, 77, 0.18), rgba(255, 109, 63, 0.14) 55%, rgba(201, 93, 255, 0.16));
+        }
+
+        .query-text-panel-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #ffd0aa;
+        }
+
+        .query-text-panel-meta {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .query-text-lines {
+            margin: 0;
+            padding: 10px 10px 10px 44px;
+            list-style: decimal;
+            list-style-position: outside;
+            background: transparent;
+        }
+
+        .query-text-lines li {
+            color: rgba(255, 255, 255, 0.38);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.55;
+            padding-left: 8px;
+        }
+
+        .query-text-lines li::marker {
+            color: rgba(255, 255, 255, 0.34);
+        }
+
+        .message .query-text-lines code {
+            background: transparent;
+            color: var(--accent-2);
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            border: 0;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
         .message.bot.bot-typing-text {
             color: var(--accent-2);
         }
@@ -1546,13 +1703,14 @@
             font-weight: 700;
         }
 
-        .message-sql-block {
-            margin: 0;
+        .message pre.message-sql-block {
+            margin-top: 0;
+            margin-bottom: 0;
             padding: 12px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 143, 77, 0.35);
-            background: linear-gradient(180deg, rgba(22, 12, 6, 0.94), rgba(14, 8, 4, 0.94));
-            color: #ffe9d8;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--accent-2);
             font-size: 0.82rem;
             line-height: 1.5;
             white-space: pre-wrap;
@@ -1669,6 +1827,12 @@
             padding: 4px 4px 2px;
         }
 
+        .sql-modal-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .sql-modal-title {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.02rem;
@@ -1736,6 +1900,13 @@
             display: grid;
             gap: 14px;
             box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .composer-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .mode-toggle {
@@ -1851,6 +2022,145 @@
             color: #180b21;
             background: linear-gradient(135deg, var(--accent), var(--accent-2));
             border-color: transparent;
+        }
+
+        .prompt-model-select {
+            position: relative;
+            width: clamp(220px, 30vw, 360px);
+            flex: 0 1 clamp(220px, 30vw, 360px);
+        }
+
+        .prompt-model-trigger {
+            width: 100%;
+            min-height: 34px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .prompt-model-value {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .prompt-model-trigger > i {
+            color: var(--muted);
+            transition: transform 160ms ease;
+        }
+
+        .prompt-model-trigger:hover,
+        .prompt-model-trigger[aria-expanded='true'] {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .prompt-model-trigger:hover .prompt-model-value,
+        .prompt-model-trigger[aria-expanded='true'] .prompt-model-value {
+            color: var(--text);
+        }
+
+        .prompt-model-select.is-open .prompt-model-trigger > i {
+            transform: rotate(180deg);
+        }
+
+        .prompt-model-menu {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: calc(100% + 10px);
+            z-index: 22;
+            display: grid;
+            gap: 6px;
+            max-height: min(320px, 44vh);
+            overflow: auto;
+            padding: 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(181, 109, 255, 0.18);
+            background: linear-gradient(180deg, rgba(12, 12, 15, 0.98), rgba(6, 6, 8, 0.98));
+            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.46);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(8px);
+            transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
+        }
+
+        .prompt-model-select.is-open .prompt-model-menu {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .prompt-model-group {
+            display: grid;
+            gap: 5px;
+        }
+
+        .prompt-model-group + .prompt-model-group {
+            padding-top: 7px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .prompt-model-group-label {
+            padding: 4px 6px 2px;
+            color: var(--accent);
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .prompt-model-option {
+            width: 100%;
+            min-height: 36px;
+            padding: 9px 10px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 0.82rem;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .prompt-model-option:hover,
+        .prompt-model-option.is-selected {
+            background: rgba(181, 109, 255, 0.12);
+            border-color: rgba(181, 109, 255, 0.16);
+        }
+
+        .prompt-model-option.is-selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--accent-2);
+            flex: 0 0 auto;
+        }
+
+        .prompt-model-empty {
+            padding: 10px;
+            border-radius: 10px;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.03);
+            font-size: 0.8rem;
         }
 
         .composer-top {
@@ -2011,6 +2321,7 @@
         .api-output-shell,
         .sql-modal-body,
         .combo-menu,
+        .prompt-model-menu,
         .diagram-surface {
             scrollbar-width: thin;
             scrollbar-color: rgba(181, 109, 255, 0.22) transparent;
@@ -2025,6 +2336,7 @@
         .api-output-shell::-webkit-scrollbar,
         .sql-modal-body::-webkit-scrollbar,
         .combo-menu::-webkit-scrollbar,
+        .prompt-model-menu::-webkit-scrollbar,
         .diagram-surface::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -2039,6 +2351,7 @@
         .api-output-shell::-webkit-scrollbar-thumb,
         .sql-modal-body::-webkit-scrollbar-thumb,
         .combo-menu::-webkit-scrollbar-thumb,
+        .prompt-model-menu::-webkit-scrollbar-thumb,
         .diagram-surface::-webkit-scrollbar-thumb {
             background: rgba(181, 109, 255, 0.22);
             border-radius: 999px;
@@ -2053,6 +2366,7 @@
         .api-output-shell::-webkit-scrollbar-thumb:hover,
         .sql-modal-body::-webkit-scrollbar-thumb:hover,
         .combo-menu::-webkit-scrollbar-thumb:hover,
+        .prompt-model-menu::-webkit-scrollbar-thumb:hover,
         .diagram-surface::-webkit-scrollbar-thumb:hover {
             background: rgba(181, 109, 255, 0.4);
         }
@@ -2066,6 +2380,7 @@
         .api-output-shell::-webkit-scrollbar-track,
         .sql-modal-body::-webkit-scrollbar-track,
         .combo-menu::-webkit-scrollbar-track,
+        .prompt-model-menu::-webkit-scrollbar-track,
         .diagram-surface::-webkit-scrollbar-track {
             background: transparent;
         }
@@ -2524,6 +2839,12 @@
                 display: none;
             }
 
+            .composer-controls {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
             .mode-toggle-btn {
                 flex: 1;
                 min-height: 36px;
@@ -2532,6 +2853,32 @@
 
             .mode-selectbox {
                 display: block;
+                order: 1;
+            }
+
+            .prompt-model-select {
+                width: 100%;
+                flex-basis: auto;
+                order: 2;
+            }
+
+            .prompt-model-trigger {
+                min-height: 36px;
+                padding: 8px 12px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                font-size: 0.8rem;
+            }
+
+            .prompt-model-value {
+                font-size: 0.8rem;
+            }
+
+            .prompt-model-menu {
+                max-height: min(280px, 48vh);
             }
 
             .main-panel {
@@ -2992,7 +3339,7 @@
                         <div>
                             <span class="eyebrow">Documentacao</span>
                             <h3>API 8801 - Endpoints, payloads e retornos</h3>
-                            <p>Referencia rapida dos endpoints da API local em http://195.35.43.220:8801. Exemplos abaixo mostram payload de request e formato de resposta.</p>
+                            <p>Referencia rapida dos endpoints da API local em http://localhost:8801. Exemplos abaixo mostram payload de request e formato de resposta.</p>
                         </div>
                         <button class="icon-btn" id="close-docs-workbench-btn" title="Fechar documentacao">
                             <i class="fas fa-xmark"></i>
@@ -3084,18 +3431,27 @@
 
             <footer class="composer">
                 <div class="composer-shell">
-                    <div class="mode-toggle" role="group" aria-label="Modo do prompt">
-                        <button class="mode-toggle-btn active" id="mode-conversation-btn" type="button" aria-pressed="true"><i class="fas fa-comments"></i>Conversation</button>
-                        <button class="mode-toggle-btn" id="mode-query-btn" type="button" aria-pressed="false"><i class="fas fa-database"></i>Query</button>
-                    </div>
-                    <div class="mode-selectbox" id="mode-selectbox">
-                        <button class="mode-select-trigger" id="mode-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
-                            <span class="mode-select-value" id="mode-select-value"><i class="fas fa-comments"></i>Conversation</span>
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                        <div class="mode-select-menu" id="mode-select-menu" role="listbox" aria-label="Modo do prompt">
-                            <button class="mode-select-option is-selected" type="button" data-mode="conversation" role="option" aria-selected="true"><i class="fas fa-comments"></i>Conversation</button>
-                            <button class="mode-select-option" type="button" data-mode="query" role="option" aria-selected="false"><i class="fas fa-database"></i>Query</button>
+                    <div class="composer-controls">
+                        <div class="prompt-model-select" id="prompt-model-select">
+                            <button class="prompt-model-trigger" id="prompt-model-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="prompt-model-value" id="prompt-model-value">Carregando modelos...</span>
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <div class="prompt-model-menu" id="prompt-model-menu" role="listbox" aria-label="IA usada nesta pergunta"></div>
+                        </div>
+                        <div class="mode-toggle" role="group" aria-label="Modo do prompt">
+                            <button class="mode-toggle-btn active" id="mode-conversation-btn" type="button" aria-pressed="true"><i class="fas fa-comments"></i>Conversation</button>
+                            <button class="mode-toggle-btn" id="mode-query-btn" type="button" aria-pressed="false"><i class="fas fa-database"></i>Query</button>
+                        </div>
+                        <div class="mode-selectbox" id="mode-selectbox">
+                            <button class="mode-select-trigger" id="mode-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="mode-select-value" id="mode-select-value"><i class="fas fa-comments"></i>Conversation</span>
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <div class="mode-select-menu" id="mode-select-menu" role="listbox" aria-label="Modo do prompt">
+                                <button class="mode-select-option is-selected" type="button" data-mode="conversation" role="option" aria-selected="true"><i class="fas fa-comments"></i>Conversation</button>
+                                <button class="mode-select-option" type="button" data-mode="query" role="option" aria-selected="false"><i class="fas fa-database"></i>Query</button>
+                            </div>
                         </div>
                     </div>
                     <div class="composer-top">
@@ -3120,11 +3476,31 @@
     </div>
 </div>
 <div class="mobile-sidebar-backdrop" id="mobile-sidebar-backdrop" aria-hidden="true"></div>
+<div class="config-auth-modal" id="config-auth-modal" aria-hidden="true">
+    <div class="config-auth-card">
+        <div class="config-auth-head">
+            <div>
+                <span class="eyebrow">Acesso protegido</span>
+                <h4>Desbloquear configuracoes</h4>
+                <p>Informe a senha de configuracao para abrir este painel.</p>
+            </div>
+            <button class="icon-btn" id="close-config-auth-btn" title="Fechar" type="button">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+        <input class="config-auth-input" id="config-auth-password" type="password" autocomplete="current-password" placeholder="Digite a senha" />
+        <div class="config-auth-error" id="config-auth-error"></div>
+        <div class="config-auth-actions">
+            <button class="outline-btn" id="cancel-config-auth-btn" type="button">Cancelar</button>
+            <button class="secondary-btn" id="submit-config-auth-btn" type="button"><i class="fas fa-lock-open"></i> Acessar</button>
+        </div>
+    </div>
+</div>
 
 <script>
     marked.setOptions({ breaks: true, gfm: true });
 
-    const API_BASE = 'http://195.35.43.220:8801/v1';
+    const API_BASE = 'http://localhost:8801/v1';
     const STORAGE_KEY = 'papoql.sessions.v2';
     const ACTIVE_SESSION_KEY = 'papoql.activeSession.v2';
     const META_KEY = 'papoql.meta.v1';
@@ -3139,6 +3515,10 @@
     const modeSelectTrigger = document.getElementById('mode-select-trigger');
     const modeSelectValue = document.getElementById('mode-select-value');
     const modeSelectMenu = document.getElementById('mode-select-menu');
+    const promptModelSelect = document.getElementById('prompt-model-select');
+    const promptModelTrigger = document.getElementById('prompt-model-trigger');
+    const promptModelValue = document.getElementById('prompt-model-value');
+    const promptModelMenu = document.getElementById('prompt-model-menu');
     const newChatBtn = document.getElementById('new-chat-btn');
     const mobileNewChatBtn = document.getElementById('mobile-new-chat-btn');
     const sessionList = document.getElementById('session-list');
@@ -3154,6 +3534,12 @@
     const mobileCloseSidebarBtn = document.getElementById('mobile-close-sidebar-btn');
     const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
     const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+    const configAuthModal = document.getElementById('config-auth-modal');
+    const closeConfigAuthBtn = document.getElementById('close-config-auth-btn');
+    const cancelConfigAuthBtn = document.getElementById('cancel-config-auth-btn');
+    const submitConfigAuthBtn = document.getElementById('submit-config-auth-btn');
+    const configAuthPassword = document.getElementById('config-auth-password');
+    const configAuthError = document.getElementById('config-auth-error');
     const apiWorkbench = document.getElementById('api-workbench');
     const closeApiWorkbenchBtn = document.getElementById('close-api-workbench-btn');
     const refreshModelBtn = document.getElementById('refresh-model-btn');
@@ -3197,8 +3583,12 @@
     let apiWorkbenchOpen = false;
     let diagramWorkbenchOpen = false;
     let docsWorkbenchOpen = false;
+    let configAuthModalOpen = false;
+    let configAccessAuthorized = false;
+    let configAuthSubmitting = false;
     let availableModels = [];
     let selectedModelName = '';
+    let selectedPromptModel = '';
     let selectedPromptMode = 'conversation';
     let latestSchemaText = '';
     let maxRequestSizeKb = 20;
@@ -3210,16 +3600,16 @@
             path: '/v1/prompt',
             title: 'Prompt sincronizado',
             description: 'Processa uma pergunta e retorna resposta final no formato JSON.',
-            payload: '{ "prompt": "Quais os 10 clientes mais recentes?" }',
-            response: '{\n  "prompt": "...",\n  "response": "...",\n  "sql": "...",\n  "current_context_usage": 0.01,\n  "max_context_usage": 0.19,\n  "max_request_size_kb": 20\n}'
+            payload: '{ "prompt": "Quais os 10 clientes mais recentes?", "model": "openrouter/openai/gpt-oss-120b:free" }',
+            response: '{\n  "prompt": "...",\n  "mode": "conversation",\n  "model": "openrouter/openai/gpt-oss-120b:free",\n  "response": "...",\n  "sql": "...",\n  "current_context_usage": 0.01,\n  "max_context_usage": 0.19,\n  "max_request_size_kb": 20\n}'
         },
         prompt_stream: {
             method: 'POST',
             path: '/v1/prompt/stream',
             title: 'Prompt em streaming (SSE)',
             description: 'Envia eventos de pensamento e resultado final via text/event-stream.',
-            payload: '{ "prompt": "..." }',
-            response: '{ "event": "status", "data": { "message": "starting processing" } }\n{ "event": "thought", "data": { "stage": "planning", "message": "..." } }\n{ "event": "result", "data": { "response": "...", "sql": "..." } }\n{ "event": "done", "data": { "ok": true } }'
+            payload: '{ "prompt": "...", "mode": "conversation", "model": "openrouter/openai/gpt-oss-120b:free" }',
+            response: '{ "event": "status", "data": { "message": "starting processing" } }\n{ "event": "thought", "data": { "stage": "planning", "message": "..." } }\n{ "event": "result", "data": { "model": "openrouter/openai/gpt-oss-120b:free", "response": "...", "sql": "..." } }\n{ "event": "done", "data": { "ok": true } }'
         },
         prompt_cancel: {
             method: 'POST',
@@ -3324,6 +3714,73 @@
         }
     }
 
+    function setConfigAuthModalOpen(open) {
+        configAuthModalOpen = open;
+        configAuthModal.classList.toggle('is-open', open);
+        configAuthModal.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) {
+            configAuthError.textContent = '';
+            requestAnimationFrame(() => configAuthPassword.focus());
+            return;
+        }
+        configAuthError.textContent = '';
+        configAuthSubmitting = false;
+    }
+
+    async function validateConfigPassword(password) {
+        const response = await fetch(`${API_BASE}/config/auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ password }),
+        });
+        if (!response.ok) {
+            return false;
+        }
+        const data = await response.json();
+        return Boolean(data && data.valid);
+    }
+
+    async function submitConfigAuth() {
+        if (configAuthSubmitting) {
+            return;
+        }
+        const password = String(configAuthPassword.value || '').trim();
+        if (!password) {
+            configAuthError.textContent = 'Informe a senha para continuar.';
+            configAuthPassword.focus();
+            return;
+        }
+
+        configAuthSubmitting = true;
+        configAuthError.textContent = '';
+        try {
+            const valid = await validateConfigPassword(password);
+            if (!valid) {
+                configAuthError.textContent = 'Senha invalida.';
+                return;
+            }
+            configAccessAuthorized = true;
+            setConfigAuthModalOpen(false);
+            setApiWorkbenchOpen(true);
+        } catch (_) {
+            configAuthError.textContent = 'Nao foi possivel validar a senha agora.';
+        } finally {
+            configAuthSubmitting = false;
+        }
+    }
+
+    function openConfigWorkbenchWithAuth() {
+        if (isMobileViewport()) {
+            setMobileSidebarOpen(false);
+        }
+        if (configAccessAuthorized) {
+            setApiWorkbenchOpen(true);
+            return;
+        }
+        setConfigAuthModalOpen(true);
+    }
+
     function setDiagramWorkbenchOpen(open) {
         diagramWorkbenchOpen = open;
         diagramWorkbench.classList.toggle('is-open', open);
@@ -3370,6 +3827,102 @@
         Array.from(modelComboboxMenu.querySelectorAll('.combo-option')).forEach((option) => {
             option.classList.toggle('is-selected', option.dataset.model === selectedModelName);
         });
+    }
+
+    function setPromptModelSelectOpen(open) {
+        if (!promptModelSelect || !promptModelTrigger) {
+            return;
+        }
+
+        promptModelSelect.classList.toggle('is-open', Boolean(open));
+        promptModelTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function persistSelectedPromptModel() {
+        try {
+            const meta = JSON.parse(localStorage.getItem(META_KEY) || '{}');
+            meta.promptModel = selectedPromptModel;
+            localStorage.setItem(META_KEY, JSON.stringify(meta));
+        } catch (_) {}
+    }
+
+    function setSelectedPromptModel(modelName) {
+        selectedPromptModel = String(modelName || '').trim();
+
+        if (promptModelValue) {
+            promptModelValue.textContent = selectedPromptModel || 'Selecione a IA';
+        }
+
+        if (promptModelMenu) {
+            Array.from(promptModelMenu.querySelectorAll('.prompt-model-option')).forEach((option) => {
+                const isSelected = option.dataset.model === selectedPromptModel;
+                option.classList.toggle('is-selected', isSelected);
+                option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            });
+        }
+
+        persistSelectedPromptModel();
+    }
+
+    function renderPromptModelOptions(currentModel = '') {
+        if (!promptModelMenu) {
+            return;
+        }
+
+        promptModelMenu.innerHTML = '';
+
+        if (!availableModels.length) {
+            const emptyState = document.createElement('div');
+            emptyState.className = 'prompt-model-empty';
+            emptyState.textContent = 'Nenhuma IA disponivel no momento.';
+            promptModelMenu.appendChild(emptyState);
+            setSelectedPromptModel(selectedPromptModel);
+            return;
+        }
+
+        const modelsByProvider = availableModels.reduce((groups, item) => {
+            if (!groups[item.provider]) {
+                groups[item.provider] = [];
+            }
+            groups[item.provider].push(item.modelName);
+            return groups;
+        }, {});
+
+        Object.entries(modelsByProvider).forEach(([provider, modelNames]) => {
+            const group = document.createElement('div');
+            group.className = 'prompt-model-group';
+
+            const label = document.createElement('div');
+            label.className = 'prompt-model-group-label';
+            label.textContent = provider.replace(/_/g, ' ');
+            group.appendChild(label);
+
+            modelNames.forEach((modelName) => {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'prompt-model-option';
+                option.dataset.model = modelName;
+                option.setAttribute('role', 'option');
+                option.setAttribute('aria-selected', 'false');
+                option.innerHTML = `<span>${modelName}</span>`;
+                option.addEventListener('click', () => {
+                    setSelectedPromptModel(modelName);
+                    setPromptModelSelectOpen(false);
+                });
+                group.appendChild(option);
+            });
+
+            promptModelMenu.appendChild(group);
+        });
+
+        const hasSelectedPromptModel = availableModels.some(({ modelName }) => modelName === selectedPromptModel);
+        if (hasSelectedPromptModel) {
+            setSelectedPromptModel(selectedPromptModel);
+            return;
+        }
+
+        const hasCurrentModel = availableModels.some(({ modelName }) => modelName === currentModel);
+        setSelectedPromptModel(hasCurrentModel ? currentModel : availableModels[0].modelName);
     }
 
     function promptModeLabelHTML(mode) {
@@ -4105,7 +4658,7 @@
         diagramSurface.innerHTML = buildErSvg(parsed);
     }
 
-    function updateModelSuggestions(models) {
+    function updateModelSuggestions(models, currentModel = '') {
         availableModels = Object.entries(models || {}).flatMap(([provider, names]) =>
             (names || []).map((modelName) => ({
                 provider,
@@ -4121,6 +4674,7 @@
             emptyState.textContent = 'Nenhum modelo disponivel no momento.';
             modelComboboxMenu.appendChild(emptyState);
             setSelectedModel(selectedModelName);
+            renderPromptModelOptions(currentModel);
             return;
         }
 
@@ -4165,13 +4719,15 @@
         } else {
             setSelectedModel(selectedModelName);
         }
+
+        renderPromptModelOptions(currentModel || currentModelValue.textContent);
     }
 
     async function loadModelInfo(showOutput = false) {
         try {
             const data = await apiRequest('GET', '/model');
             currentModelValue.textContent = data.current || 'Nenhum modelo selecionado';
-            updateModelSuggestions(data.models || {});
+            updateModelSuggestions(data.models || {}, data.current || '');
             if (data.current) {
                 setSelectedModel(data.current);
             }
@@ -4185,6 +4741,8 @@
             }
         } catch (error) {
             currentModelValue.textContent = 'Erro ao carregar';
+            availableModels = [];
+            renderPromptModelOptions('');
             setApiOutput(
                 'Falha ao carregar modelos',
                 'Nao foi possivel consultar GET /v1/model.',
@@ -4198,7 +4756,7 @@
         try {
             const data = await apiRequest('GET', '/model');
             currentModelValue.textContent = data.current || 'Nenhum modelo selecionado';
-            updateModelSuggestions(data.models || {});
+            updateModelSuggestions(data.models || {}, data.current || '');
             setApiOutput(
                 'Lista de modelos',
                 'Modelos disponiveis por provedor, equivalente ao CLI.',
@@ -4307,6 +4865,7 @@
         try {
             const meta = JSON.parse(localStorage.getItem(META_KEY) || '{}');
             if (meta.maxRequestSizeKb) maxRequestSizeKb = meta.maxRequestSizeKb;
+            if (meta.promptModel) selectedPromptModel = String(meta.promptModel || '').trim();
             if (meta.contextCurrentMB != null && meta.contextMaxMB != null) {
                 updateContextBar(meta.contextCurrentMB, meta.contextMaxMB);
             }
@@ -4425,6 +4984,35 @@
         }
     }
 
+    async function copyTextToClipboard(text, triggerButton) {
+        const payload = String(text || '');
+        if (!payload) {
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(payload);
+        } catch (_) {
+            const fallback = document.createElement('textarea');
+            fallback.value = payload;
+            fallback.style.position = 'fixed';
+            fallback.style.opacity = '0';
+            document.body.appendChild(fallback);
+            fallback.focus();
+            fallback.select();
+            document.execCommand('copy');
+            document.body.removeChild(fallback);
+        }
+
+        if (triggerButton) {
+            const oldLabel = triggerButton.innerHTML;
+            triggerButton.innerHTML = '<i class="fas fa-check"></i> Copiado';
+            setTimeout(() => {
+                triggerButton.innerHTML = oldLabel;
+            }, 1200);
+        }
+    }
+
     function showSqlModal(sql) {
         const overlay = document.createElement('div');
         overlay.className = 'sql-modal-overlay';
@@ -4433,11 +5021,15 @@
         modal.innerHTML = `
             <div class="sql-modal-header">
                 <span class="sql-modal-title"><i class="fas fa-code"></i> SQL gerado</span>
-                <button class="sql-modal-close"><i class="fas fa-xmark"></i></button>
+                <div class="sql-modal-actions">
+                    <button class="sql-btn" id="sql-modal-copy-btn" type="button"><i class="fas fa-copy"></i> Copiar</button>
+                    <button class="sql-modal-close" type="button"><i class="fas fa-xmark"></i></button>
+                </div>
             </div>
             <div class="sql-modal-body"><pre></pre></div>
         `;
-        modal.querySelector('pre').textContent = formatSqlForDisplay(sql);
+        const formattedSql = formatSqlForDisplay(sql);
+        modal.querySelector('pre').textContent = formattedSql;
         overlay.appendChild(modal);
         let closing = false;
         const close = () => {
@@ -4454,6 +5046,9 @@
         const onKey = (e) => { if (e.key === 'Escape') close(); };
         overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
         modal.querySelector('.sql-modal-close').addEventListener('click', close);
+        modal.querySelector('#sql-modal-copy-btn').addEventListener('click', (event) => {
+            copyTextToClipboard(formattedSql, event.currentTarget);
+        });
         document.addEventListener('keydown', onKey);
         document.body.appendChild(overlay);
         requestAnimationFrame(() => {
@@ -4493,16 +5088,53 @@
         }
     }
 
+    function appendCopySqlButton(msgDiv, message) {
+        if (message.sql) {
+            const btn = document.createElement('button');
+            btn.className = 'sql-btn';
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+            btn.onclick = (event) => {
+                copyTextToClipboard(formatSqlForDisplay(message.sql || message.text || ''), event.currentTarget);
+            };
+            msgDiv.appendChild(btn);
+        }
+    }
+
+    function buildQueryTextPanel(sqlText) {
+        const raw = String(sqlText || '').trim();
+        const formatted = formatSqlForDisplay(raw);
+        const lines = (formatted || '').split(/\r?\n/);
+
+        const panel = document.createElement('div');
+        panel.className = 'query-text-panel';
+
+        const head = document.createElement('div');
+        head.className = 'query-text-panel-head';
+        head.innerHTML = `<span class="query-text-panel-title">SQL Panel</span><span class="query-text-panel-meta">${lines.length} linhas</span>`;
+
+        const list = document.createElement('ol');
+        list.className = 'query-text-lines';
+
+        lines.forEach((line) => {
+            const item = document.createElement('li');
+            const code = document.createElement('code');
+            code.textContent = line.length ? line : ' ';
+            item.appendChild(code);
+            list.appendChild(item);
+        });
+
+        panel.appendChild(head);
+        panel.appendChild(list);
+        return panel;
+    }
+
     function renderBotMessageContent(msgDiv, message) {
         msgDiv.classList.remove('bot-typing-text');
         if (message.mode === 'query') {
             msgDiv.textContent = '';
 
-            const sqlBlock = document.createElement('pre');
-            sqlBlock.className = 'message-sql-block';
-            sqlBlock.textContent = formatSqlForDisplay(message.sql || message.text || '');
-
-            msgDiv.appendChild(sqlBlock);
+            const panel = buildQueryTextPanel(message.sql || message.text || '');
+            msgDiv.appendChild(panel);
         } else {
             msgDiv.innerHTML = marked.parse(message.text || '');
         }
@@ -4527,7 +5159,7 @@
         `;
 
         const msgDiv = document.createElement('div');
-        msgDiv.className = `message ${message.sender} ${message.isError ? 'error' : ''}`;
+        msgDiv.className = `message ${message.sender} ${message.isError ? 'error' : ''} ${message.sender === 'bot' && message.mode === 'query' ? 'query-message' : ''}`;
 
         if (message.sender === 'bot') {
             if (!options.deferContent) {
@@ -4547,6 +5179,14 @@
             const actionsRow = document.createElement('div');
             actionsRow.className = 'message-actions-row';
             appendSqlButton(actionsRow, message);
+            appendCopySqlButton(actionsRow, message);
+            wrapper.appendChild(actionsRow);
+        }
+
+        if (message.sender === 'bot' && message.sql && message.mode === 'query') {
+            const actionsRow = document.createElement('div');
+            actionsRow.className = 'message-actions-row';
+            appendCopySqlButton(actionsRow, message);
             wrapper.appendChild(actionsRow);
         }
     }
@@ -4942,12 +5582,13 @@
         promptState.abortController = new AbortController();
 
         try {
+            const promptModelName = selectedPromptModel || selectedModelName || '';
             const responsePromise = fetch(`${API_BASE}/prompt/stream`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 signal: promptState.abortController.signal,
-                body: JSON.stringify({ prompt: promptText, mode: selectedPromptMode })
+                body: JSON.stringify({ prompt: promptText, mode: selectedPromptMode, model: promptModelName })
             });
 
             await sleep(560);
@@ -5180,6 +5821,20 @@
     modelComboboxTrigger.addEventListener('click', () => {
         setModelComboboxOpen(!modelCombobox.classList.contains('is-open'));
     });
+    if (promptModelTrigger) {
+        promptModelTrigger.addEventListener('click', () => {
+            const isOpen = promptModelSelect && promptModelSelect.classList.contains('is-open');
+            setPromptModelSelectOpen(!isOpen);
+        });
+    }
+    if (promptModelMenu) {
+        promptModelMenu.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                setPromptModelSelectOpen(false);
+                promptModelTrigger.focus();
+            }
+        });
+    }
     modelComboboxMenu.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             setModelComboboxOpen(false);
@@ -5189,6 +5844,9 @@
     document.addEventListener('click', (event) => {
         if (!modelCombobox.contains(event.target)) {
             setModelComboboxOpen(false);
+        }
+        if (promptModelSelect && !promptModelSelect.contains(event.target)) {
+            setPromptModelSelectOpen(false);
         }
         if (modeSelectBox && !modeSelectBox.contains(event.target)) {
             setModeSelectOpen(false);
@@ -5209,11 +5867,15 @@
     userInput.addEventListener('blur', () => {
         requestAnimationFrame(syncMobileKeyboardLayout);
     });
-    toggleSidebarBtn.addEventListener('click', () => {
-        if (isMobileViewport()) {
-            setMobileSidebarOpen(false);
+    toggleSidebarBtn.addEventListener('click', openConfigWorkbenchWithAuth);
+    closeConfigAuthBtn.addEventListener('click', () => setConfigAuthModalOpen(false));
+    cancelConfigAuthBtn.addEventListener('click', () => setConfigAuthModalOpen(false));
+    submitConfigAuthBtn.addEventListener('click', submitConfigAuth);
+    configAuthPassword.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            submitConfigAuth();
         }
-        setApiWorkbenchOpen(true);
     });
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', syncMobileViewportLayout);
@@ -5239,9 +5901,18 @@
             setDocsWorkbenchOpen(false);
         }
     });
+    configAuthModal.addEventListener('click', (event) => {
+        if (event.target === configAuthModal) {
+            setConfigAuthModalOpen(false);
+        }
+    });
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && document.body.classList.contains('mobile-sidebar-open')) {
             setMobileSidebarOpen(false);
+            return;
+        }
+        if (event.key === 'Escape' && configAuthModalOpen) {
+            setConfigAuthModalOpen(false);
             return;
         }
         if (event.key === 'Escape' && docsWorkbenchOpen) {
@@ -5254,6 +5925,10 @@
         }
         if (event.key === 'Escape' && modelCombobox.classList.contains('is-open')) {
             setModelComboboxOpen(false);
+            return;
+        }
+        if (event.key === 'Escape' && promptModelSelect && promptModelSelect.classList.contains('is-open')) {
+            setPromptModelSelectOpen(false);
             return;
         }
         if (event.key === 'Escape' && modeSelectBox && modeSelectBox.classList.contains('is-open')) {

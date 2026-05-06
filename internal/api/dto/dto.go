@@ -3,10 +3,15 @@ package dto
 type Prompt struct {
 	Prompt string `json:"prompt" binding:"required"`
 	Mode   string `json:"mode"`
+	Model  string `json:"model"`
 }
 
 type PromptCancel struct {
 	RequestID string `json:"request_id" binding:"required"`
+}
+
+type ConfigAuth struct {
+	Password string `json:"password" binding:"required"`
 }
 
 type Models struct {
