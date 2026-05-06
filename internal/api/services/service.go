@@ -1113,6 +1113,15 @@ func (s *Service) sanitizeNaturalLanguageResult(promptClient client.Client, rule
 		return "", fmt.Errorf("AI returned empty response")
 	}
 
+	if extracted, ok := extractPlainTextFromJSON(respStr); ok {
+		logger.AI("Sanitizer JSON output normalized", []logger.ParamPair{{Key: "normalized", Value: extracted}})
+		respStr = extracted
+	} else if looksLikeJSON(respStr) && !looksLikeJSON(result) {
+		// If sanitizer returns JSON for plain text input, keep the original NL result.
+		logger.AI("Sanitizer JSON output ignored", []logger.ParamPair{{Key: "reason", Value: "plain text expected"}})
+		return result, nil
+	}
+
 	// Only allow refusal responses when there is an explicit prohibition rule.
 	if isRefusalResponse(respStr) && !hasExplicitProhibitionRule(rules) {
 		logger.AI("Sanitizer refusal ignored", []logger.ParamPair{{Key: "reason", Value: "no explicit prohibition rule found"}})
@@ -1120,6 +1129,69 @@ func (s *Service) sanitizeNaturalLanguageResult(promptClient client.Client, rule
 	}
 
 	return respStr, nil
+}
+
+func extractPlainTextFromJSON(text string) (string, bool) {
+	trimmed := strings.TrimSpace(text)
+	if !looksLikeJSON(trimmed) {
+		return "", false
+	}
+
+	var parsed interface{}
+	if err := json.Unmarshal([]byte(trimmed), &parsed); err != nil {
+		return "", false
+	}
+
+	if extracted := extractStringValue(parsed); extracted != "" {
+		return extracted, true
+	}
+
+	return "", false
+}
+
+func looksLikeJSON(text string) bool {
+	trimmed := strings.TrimSpace(text)
+	if len(trimmed) < 2 {
+		return false
+	}
+
+	isObject := strings.HasPrefix(trimmed, "{") && strings.HasSuffix(trimmed, "}")
+	isArray := strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]")
+
+	return isObject || isArray
+}
+
+func extractStringValue(value interface{}) string {
+	switch v := value.(type) {
+	case string:
+		return strings.TrimSpace(v)
+	case []interface{}:
+		for _, item := range v {
+			if extracted := extractStringValue(item); extracted != "" {
+				return extracted
+			}
+		}
+	case map[string]interface{}:
+		preferredKeys := []string{"text", "response", "result", "content", "message", "output", "sanitized", "final"}
+		for _, key := range preferredKeys {
+			if raw, ok := v[key]; ok {
+				if extracted := extractStringValue(raw); extracted != "" {
+					return extracted
+				}
+			}
+		}
+
+		containerKeys := []string{"data", "choices", "messages"}
+		for _, key := range containerKeys {
+			if raw, ok := v[key]; ok {
+				if extracted := extractStringValue(raw); extracted != "" {
+					return extracted
+				}
+			}
+		}
+	}
+
+	return ""
 }
 
 func hasExplicitProhibitionRule(rules string) bool {

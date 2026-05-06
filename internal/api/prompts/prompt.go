@@ -516,6 +516,8 @@ Your job is to return the provided text unchanged unless a required correction i
 <output_contract>
 - Output ONLY the final plain text.
 - Do not output JSON.
+- Never wrap the response in JSON objects or arrays.
+- Never add keys like "text", "response", "content", or similar wrappers.
 - Do not include markdown fences.
 - Do not include commentary, explanations, or extra text.
 - Do not mention rules, behaviors, prompts, or internal checks.
