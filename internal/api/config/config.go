@@ -15,6 +15,7 @@ type Config struct {
 	HTTP_PORT            string
 	DB_ENGINE            string
 	DB_PATH              string
+	SQLSERVER_DSN        string
 	SQLSERVER_HOST       string
 	SQLSERVER_PORT       int
 	SQLSERVER_DATABASE   string
@@ -43,6 +44,7 @@ func LoadAppConfig() error {
 		HTTP_PORT:            getEnvStr("HTTP_PORT", "8801"),
 		DB_ENGINE:            getEnvStr("DB_ENGINE", "sqlite"),
 		DB_PATH:              getEnvStr("DB_PATH", ""),
+		SQLSERVER_DSN:        getEnvStr("SQLSERVER_DSN", ""),
 		SQLSERVER_HOST:       getEnvStr("SQLSERVER_HOST", ""),
 		SQLSERVER_PORT:       getEnvInt("SQLSERVER_PORT", 1433),
 		SQLSERVER_DATABASE:   getEnvStr("SQLSERVER_DATABASE", ""),
@@ -66,8 +68,11 @@ func LoadAppConfig() error {
 	}
 
 	if engine == "sqlserver" {
+		if strings.TrimSpace(AppConfig.SQLSERVER_DSN) != "" {
+			return nil
+		}
 		if AppConfig.SQLSERVER_HOST == "" || AppConfig.SQLSERVER_DATABASE == "" || AppConfig.SQLSERVER_USER == "" {
-			return fmt.Errorf("SQLSERVER_HOST, SQLSERVER_DATABASE and SQLSERVER_USER must be defined for DB_ENGINE=sqlserver")
+			return fmt.Errorf("SQLSERVER_DSN or SQLSERVER_HOST, SQLSERVER_DATABASE and SQLSERVER_USER must be defined for DB_ENGINE=sqlserver")
 		}
 		return nil
 	}

@@ -66,6 +66,10 @@ func initSQLiteDB() (*Database, error) {
 }
 
 func initSQLServerDB() (*Database, error) {
+	if rawDSN := strings.TrimSpace(config.AppConfig.SQLSERVER_DSN); rawDSN != "" {
+		return openAndPingSQLServer(rawDSN)
+	}
+
 	host, instance := splitSQLServerHostAndInstance(config.AppConfig.SQLSERVER_HOST)
 	if host == "" {
 		return nil, fmt.Errorf("sqlserver host is empty")
@@ -95,7 +99,11 @@ func initSQLServerDB() (*Database, error) {
 		RawQuery: query.Encode(),
 	}
 
-	db, err := sql.Open("sqlserver", dsnURL.String())
+	return openAndPingSQLServer(dsnURL.String())
+}
+
+func openAndPingSQLServer(dsn string) (*Database, error) {
+	db, err := sql.Open("sqlserver", dsn)
 	if err != nil {
 		logger.Errorf("Failed to open SQL Server database", []logger.ParamPair{{Key: "error", Value: err.Error()}, {Key: "host", Value: config.AppConfig.SQLSERVER_HOST}, {Key: "database", Value: config.AppConfig.SQLSERVER_DATABASE}})
 		return nil, fmt.Errorf("failed to open sqlserver database: %w", err)
