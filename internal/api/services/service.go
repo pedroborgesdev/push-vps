@@ -126,6 +126,14 @@ func normalizePromptMode(mode string) string {
 	}
 }
 
+func (s *Service) databaseEngine() string {
+	engine := strings.ToLower(strings.TrimSpace(config.AppConfig.DB_ENGINE))
+	if engine == "" {
+		return "sqlite"
+	}
+	return engine
+}
+
 func (s *Service) Prompt(ctx context.Context, user_prompt string, mode string, model string, history []session.Message, progressCb ...func(stage string, message string)) (string, string, string, float64, float64, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -462,7 +470,7 @@ func (s *Service) promptConversationMode(promptClient client.Client, user_prompt
 
 func (s *Service) getNaturalLanguageResultFromAI(promptClient client.Client, user_prompt, histStr string, sqlResultsJSON []byte, behaviors string) (string, error) {
 	resp, err := promptClient.Prompt(
-		fmt.Sprintf(prompts.Prompt_3A_LinguagemNatural, histStr, user_prompt, sqlResultsJSON, behaviors),
+		fmt.Sprintf(prompts.Prompt_3A_LinguagemNatural, histStr, s.databaseEngine(), user_prompt, sqlResultsJSON, behaviors),
 	)
 
 	if err != nil {
@@ -480,7 +488,7 @@ func (s *Service) getNaturalLanguageResultFromAI(promptClient client.Client, use
 
 func (s *Service) getConversationResponseFromAI(promptClient client.Client, user_prompt, histStr, mode, behaviors string) (string, error) {
 	resp, err := promptClient.Prompt(
-		fmt.Sprintf(prompts.Prompt_1D_RespostaConversation, histStr, mode, user_prompt, behaviors),
+		fmt.Sprintf(prompts.Prompt_1D_RespostaConversation, histStr, s.databaseEngine(), mode, user_prompt, behaviors),
 	)
 
 	if err != nil {
@@ -836,7 +844,7 @@ func (s *Service) readSchemaFile() (string, error) {
 }
 
 func (s *Service) getActionFromAI(promptClient client.Client, rules, histStr, user_prompt, mode string) ([]ActionClassification, error) {
-	resp, err := promptClient.Prompt(fmt.Sprintf(prompts.Prompt_1B_Classificacao, rules, histStr, mode, user_prompt))
+	resp, err := promptClient.Prompt(fmt.Sprintf(prompts.Prompt_1B_Classificacao, s.databaseEngine(), rules, histStr, mode, user_prompt))
 	if err != nil {
 		return nil, err
 	}
@@ -871,7 +879,7 @@ func (s *Service) getActionFromAI(promptClient client.Client, rules, histStr, us
 
 func (s *Service) getEnhancedPromptFromAI(promptClient client.Client, action, actionType, schema string) (string, bool, error) {
 	resp, err := promptClient.Prompt(
-		fmt.Sprintf(prompts.Prompt_1C_Reestruturacao, action, actionType, schema),
+		fmt.Sprintf(prompts.Prompt_1C_Reestruturacao, s.databaseEngine(), action, actionType, schema),
 	)
 	if err != nil {
 		return "", false, err
@@ -905,7 +913,7 @@ func (s *Service) getEnhancedPromptFromAI(promptClient client.Client, action, ac
 
 func (s *Service) getValidationFromAI(promptClient client.Client, rules, behaviors, question string) (bool, string, error) {
 	resp, err := promptClient.Prompt(
-		fmt.Sprintf(prompts.Prompt_1A_Validacao, rules, behaviors, question),
+		fmt.Sprintf(prompts.Prompt_1A_Validacao, s.databaseEngine(), rules, behaviors, question),
 	)
 	if err != nil {
 		return false, "", err
@@ -942,7 +950,7 @@ func (s *Service) getValidationFromAI(promptClient client.Client, rules, behavio
 
 func (s *Service) getPlanningFromAI(promptClient client.Client, enhancedPrompt string) (QueryPlanning, error) {
 	resp, err := promptClient.Prompt(
-		fmt.Sprintf(prompts.Prompt_2A_Planejamento, enhancedPrompt, s.schema),
+		fmt.Sprintf(prompts.Prompt_2A_Planejamento, s.databaseEngine(), enhancedPrompt, s.schema),
 	)
 
 	if err != nil {
@@ -977,6 +985,7 @@ func (s *Service) getInspectionFromAI(promptClient client.Client, tables, column
 	resp, err := promptClient.Prompt(
 		fmt.Sprintf(
 			prompts.Prompt_2B_Inspecao,
+			s.databaseEngine(),
 			strings.Join(tables, ", "),
 			strings.Join(columns, ", "),
 			strings.Join(joins, ", "),
@@ -1047,6 +1056,7 @@ func (s *Service) getFinalSQLFromAI(promptClient client.Client, rules, enhancedP
 	resp, err := promptClient.Prompt(
 		fmt.Sprintf(
 			prompts.Prompt_2C_SQLFinal,
+			s.databaseEngine(),
 			rules,
 			enhancedPrompt,
 			schema,
@@ -1090,7 +1100,7 @@ func (s *Service) getFinalSQLFromAI(promptClient client.Client, rules, enhancedP
 
 func (s *Service) sanitizeNaturalLanguageResult(promptClient client.Client, rules, behaviors, histStr, result string) (string, error) {
 	resp, err := promptClient.Prompt(
-		fmt.Sprintf(prompts.Prompt_3B_Sanitizacao, rules, behaviors, histStr, result),
+		fmt.Sprintf(prompts.Prompt_3B_Sanitizacao, s.databaseEngine(), rules, behaviors, histStr, result),
 	)
 
 	if err != nil {

@@ -6,7 +6,7 @@ package prompts
 
 var Prompt_1A_Validacao = `
 <role>
-You are a deterministic request validator for a SQLite-backed assistant.
+You are a deterministic request validator for a database-backed assistant.
 Your only job is to decide whether the current user question can be answered without violating the explicit rules.
 </role>
 
@@ -48,6 +48,9 @@ For an invalid request, include exactly the fields "valid" and "response"; "resp
 </output_contract>
 
 <input>
+<database_engine>
+%s
+</database_engine>
 <rules>
 %s
 </rules>
@@ -66,7 +69,7 @@ For an invalid request, include exactly the fields "valid" and "response"; "resp
 
 var Prompt_1B_Classificacao = `
 <role>
-You are a deterministic intent classifier for a SQLite-backed assistant.
+You are a deterministic intent classifier for a database-backed assistant.
 Your job is to classify the user's current question into database actions or conversation.
 </role>
 
@@ -125,6 +128,9 @@ Conversation response shape:
 </output_contract>
 
 <input>
+<database_engine>
+%s
+</database_engine>
 <rules>
 %s
 </rules>
@@ -170,6 +176,9 @@ Your job is to produce the final plain-text answer for non-database conversation
 <conversation_context>
 %s
 </conversation_context>
+<database_engine>
+%s
+</database_engine>
 <mode>
 %s
 </mode>
@@ -188,7 +197,7 @@ Your job is to produce the final plain-text answer for non-database conversation
 
 var Prompt_1C_Reestruturacao = `
 <role>
-You rewrite classified database actions into precise, self-contained natural-language instructions for SQLite generation.
+You rewrite classified database actions into precise, self-contained natural-language instructions for SQL generation for the selected database engine.
 You do not generate SQL.
 </role>
 
@@ -232,6 +241,7 @@ Response shape:
 </output_contract>
 
 <input>
+<database_engine>%s</database_engine>
 <action>%s</action>
 <type>%s</type>
 <schema>
@@ -246,7 +256,7 @@ Response shape:
 
 var Prompt_2A_Planejamento = `
 <role>
-You are a deterministic SQLite query planner.
+You are a deterministic SQL query planner for the selected database engine.
 Your job is to create a schema-grounded plan, not SQL.
 </role>
 
@@ -284,6 +294,7 @@ Response shape:
 </output_contract>
 
 <input>
+<database_engine>%s</database_engine>
 <question>%s</question>
 <schema>
 %s
@@ -297,7 +308,7 @@ Response shape:
 
 var Prompt_2B_Inspecao = `
 <role>
-You are a deterministic SQLite inspection-query generator.
+You are a deterministic SQL inspection-query generator for the selected database engine.
 Your job is to generate small SELECT statements that sample planned columns before final SQL generation.
 </role>
 
@@ -316,7 +327,7 @@ Your job is to generate small SELECT statements that sample planned columns befo
 6. Never include columns from other tables in a table inspection query.
 7. Use table.column notation for every selected column.
 8. End every SQL statement with a semicolon.
-9. Add LIMIT 10 to every inspection query.
+9. Add a limit of 10 rows using syntax compatible with <database_engine>.
 10. If no table has listed columns, return an empty JSON array.
 </generation_rules>
 
@@ -341,6 +352,7 @@ Response shape:
 </output_contract>
 
 <input>
+<database_engine>%s</database_engine>
 <tables>%s</tables>
 <columns>%s</columns>
 <joins>%s</joins>
@@ -353,7 +365,7 @@ Response shape:
 
 var Prompt_2C_SQLFinal = `
 <role>
-You are a deterministic SQLite SQL author.
+You are a deterministic SQL author for the selected database engine.
 Your job is to generate the final SQL statements needed to satisfy the user's database action.
 </role>
 
@@ -380,7 +392,7 @@ Your job is to generate the final SQL statements needed to satisfy the user's da
 12. Combine work into one SQL statement when one statement fully answers the action.
 13. Use multiple statements only when the user requested multiple sequential database operations.
 14. Generate exactly one SQL statement per "sql" field.
-15. End every SQL statement with a semicolon.
+15. End every SQL statement with a semicolon and use syntax compatible with <database_engine>.
 16. Do not include SQL comments.
 17. Do not use PRAGMA, ATTACH, DETACH, VACUUM, transaction commands, extension-loading commands, or database administration commands.
 18. For READ actions, generate only SELECT statements.
@@ -411,6 +423,7 @@ Response shape:
 </output_contract>
 
 <input>
+<database_engine>%s</database_engine>
 <rules>
 %s
 </rules>
@@ -467,6 +480,9 @@ You transform structured execution results into a plain-text answer for the user
 <conversation_context>
 %s
 </conversation_context>
+<database_engine>
+%s
+</database_engine>
 <user_question>%s</user_question>
 <results>
 %s
@@ -507,6 +523,9 @@ Your job is to return the provided text unchanged unless a required correction i
 </output_contract>
 
 <input>
+<database_engine>
+%s
+</database_engine>
 <rules>
 %s
 </rules>
